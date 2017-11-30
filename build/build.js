@@ -8,6 +8,7 @@ fs.emptyDirSync(path.resolve(__dirname, '../dist'))
 // 编译 js
 const rollup = require('rollup')
 const uglifyJS = require('uglify-js')
+const html = require('rollup-plugin-html')
 const typescript = require('rollup-plugin-typescript2')
 const buble = require('rollup-plugin-buble')
 
@@ -15,6 +16,15 @@ rollup
   .rollup({
     input: config.input,
     plugins: [
+      html({
+        htmlMinifierOptions: {
+          removeComments: true,
+          collapseWhitespace: true,
+          collapseBooleanAttributes: true,
+          conservativeCollapse: false,
+          removeAttributeQuotes: true
+        }
+      }),
       typescript({
         useTsconfigDeclarationDir: true
       }),
