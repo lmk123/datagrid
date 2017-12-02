@@ -9,13 +9,19 @@ fs.emptyDirSync(path.resolve(__dirname, '../dist'))
 const rollup = require('rollup')
 const uglifyJS = require('uglify-js')
 const html = require('rollup-plugin-html')
+const postcss = require('rollup-plugin-postcss')
+const cssNext = require('postcss-cssnext')
 const typescript = require('rollup-plugin-typescript2')
+const resolve = require('rollup-plugin-node-resolve')
 const buble = require('rollup-plugin-buble')
 
 rollup
   .rollup({
     input: config.input,
     plugins: [
+      postcss({
+        plugins: [cssNext()]
+      }),
       html({
         htmlMinifierOptions: {
           removeComments: true,
@@ -25,6 +31,7 @@ rollup
           removeAttributeQuotes: true
         }
       }),
+      resolve(),
       typescript({
         useTsconfigDeclarationDir: true
       }),

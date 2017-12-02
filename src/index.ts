@@ -1,3 +1,1 @@
-import x from './core/template.html'
-
-export default x
+export * from './core/index'

@@ -1,19 +1,17 @@
-const livereload = require('rollup-plugin-livereload')
-const serve = require('rollup-plugin-serve')
-const typescript = require('rollup-plugin-typescript2')
-const html = require('rollup-plugin-html')
 const config = require('./config')
 
 module.exports = {
   input: config.input,
   plugins: [
-    html(),
-    typescript(),
-    serve({
+    require('rollup-plugin-postcss')(),
+    require('rollup-plugin-html')(),
+    require('rollup-plugin-node-resolve')(),
+    require('rollup-plugin-typescript2')(),
+    require('rollup-plugin-serve')({
       open: true,
       contentBase: 'dev'
     }),
-    livereload()
+    require('rollup-plugin-livereload')()
   ],
   output: {
     file: './dev/datagrid.js',
