@@ -1,21 +1,7 @@
-const config = require('./config')
+const fs = require('fs-extra')
+const rollup = require('rollup')
+const config = require('./rollup-config')()
 
-module.exports = {
-  input: config.input,
-  plugins: [
-    require('rollup-plugin-postcss')(),
-    require('rollup-plugin-html')(),
-    require('rollup-plugin-node-resolve')(),
-    require('rollup-plugin-typescript2')(),
-    require('rollup-plugin-serve')({
-      open: true,
-      contentBase: 'dev'
-    }),
-    require('rollup-plugin-livereload')()
-  ],
-  output: {
-    file: './dev/datagrid.js',
-    format: 'iife',
-    name: config.name
-  }
-}
+rollup.watch(
+  Object.assign(config.inputOptions, { output: config.outputOptions[0] })
+)

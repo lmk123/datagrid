@@ -15,7 +15,7 @@
     "declaration"
   ],
   "scripts": {
-    "start": "rollup -c build/dev.js -w",
+    "start": "node build/dev.js",
     "lint": "tslint -p tsconfig.json -t verbose",
     "build": "node build/build.js",
     "prepublishOnly": "npm run lint && npm run build"

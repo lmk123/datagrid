@@ -1,28 +1,25 @@
 import TinyEmitter from 'tinyemitter'
 import template from './template.html'
-import style from './style.css'
-import { insertStyle } from '../utils'
+import './style.css'
 
-insertStyle(style)
-
-interface Column {
+export interface Column {
   key: string
 }
 
-interface Row {
+export interface Row {
   [prop: string]: any
 }
 
-interface DataGridOptions {
+export interface DataGridOptions {
   th?: (column: Column) => string
   td?: (column: Column, row: Row) => string
 }
 
-interface InnerDataGridOptions extends DataGridOptions {
+export interface InnerDataGridOptions extends DataGridOptions {
   [prop: string]: any
 }
 
-interface TableData {
+export interface TableData {
   columns: Column[]
   rows: Row[]
 }
@@ -37,7 +34,7 @@ function defaultTdRenderer(column: Column, row: Row) {
 
 const fragment = document.createDocumentFragment()
 
-class DataGrid extends TinyEmitter {
+export class DataGrid extends TinyEmitter {
   options: InnerDataGridOptions
   el: HTMLDivElement
   ui: { [prop: string]: HTMLElement }
@@ -87,7 +84,7 @@ class DataGrid extends TinyEmitter {
   }
 }
 
-interface Plugin {
+export interface Plugin {
   install?: (Constructor: typeof DataGrid) => void
   created?: (grid: DataGrid) => void
 }
@@ -108,6 +105,6 @@ export function use(plugin: Plugin) {
   }
 }
 
-export function createGrid(options: DataGridOptions) {
+export function createGrid(options?: DataGridOptions) {
   return new DataGrid(options)
 }
