@@ -2,7 +2,7 @@ const pkg = require('../package.json')
 const name = 'Datagrid'
 const banner = [
   '/*!',
-  ' * datagrid.js v' + pkg.version,
+  ' * datagrid v' + pkg.version,
   ' * https://github.com/lmk123/datagrid',
   ' * Released under the MIT License.',
   ' */'
@@ -58,13 +58,11 @@ module.exports = function(isBuild) {
           {
             file: './dist/datagrid.esm.js',
             format: 'es',
-            name,
             banner
           },
           {
             file: './dist/datagrid.common.js',
             format: 'cjs',
-            name,
             banner
           },
           {

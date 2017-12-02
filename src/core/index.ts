@@ -104,7 +104,3 @@ export function use(plugin: Plugin) {
     createdFns.push(plugin.created)
   }
 }
-
-export function createGrid(options?: DataGridOptions) {
-  return new DataGrid(options)
-}
