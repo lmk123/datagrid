@@ -1,7 +1,7 @@
-/node_modules/
-/dist/
+/node_modules
+/dist
 .DS_Store
-/.idea/
+/.idea
 /.rpt2_cache
 /declaration
 /dev/index.js
