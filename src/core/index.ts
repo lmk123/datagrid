@@ -34,6 +34,8 @@ function defaultTdRenderer(column: Column, row: Row) {
 
 const fragment = document.createDocumentFragment()
 
+const createdFns: Plugin['created'][] = []
+
 export class DataGrid extends TinyEmitter {
   options: InnerDataGridOptions
   el: HTMLDivElement
@@ -88,8 +90,6 @@ export interface Plugin {
   install?: (Constructor: typeof DataGrid) => void
   created?: (grid: DataGrid) => void
 }
-
-const createdFns: Plugin['created'][] = []
 
 /**
  * 应用一个插件

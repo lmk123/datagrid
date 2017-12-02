@@ -1,6 +1,6 @@
 import { DataGrid } from '../src/index'
 
-var grid = new DataGrid
+const grid = new DataGrid
 document.body.appendChild(grid.el)
 
 setTimeout(() => {
