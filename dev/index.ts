@@ -1,6 +1,9 @@
-import { DataGrid } from '../src/index'
+import DataGrid, { fixedHeader } from '../src/index'
+import data from './data'
 
-const grid = new DataGrid()
+const grid = new DataGrid({
+  plugins: [fixedHeader]
+})
 document.body.appendChild(grid.el)
 grid.setData({ rows: [], columns: [] })
 
@@ -20,16 +23,5 @@ setTimeout(() => {
 }, 2000)
 
 setTimeout(() => {
-  grid.setData({
-    columns: [
-      {
-        key: '我看'
-      }
-    ],
-    rows: [
-      {
-        '我看': '去吧'
-      }
-    ]
-  })
+  grid.setData(data)
 }, 4000)

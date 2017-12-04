@@ -37,7 +37,7 @@ function defaultTdRenderer(column: ColumnObj, row: Row) {
 
 const fragment = document.createDocumentFragment()
 
-export class DataGrid extends TinyEmitter {
+export default class DataGrid extends TinyEmitter {
   options: InnerDataGridOptions
   el: HTMLDivElement
   ui: { [prop: string]: Element }
@@ -56,6 +56,7 @@ export class DataGrid extends TinyEmitter {
     el.className = 'datagrid'
     el.innerHTML = template
     this.ui = {
+      table: el.getElementsByTagName('table')[0],
       thead: el.getElementsByTagName('thead')[0],
       tbody: el.getElementsByTagName('tbody')[0],
       modal: el.getElementsByClassName('modal-content')[0]
@@ -108,6 +109,7 @@ export class DataGrid extends TinyEmitter {
       tbody.innerHTML = ''
       this.showModal()
     }
+    this.emit('afterSetData')
   }
 
   showModal(html = '暂无数据') {
@@ -117,6 +119,10 @@ export class DataGrid extends TinyEmitter {
 
   hideModal() {
     this.el.classList.remove('show-modal')
+  }
+
+  destroy() {
+    this.emit('beforeDestroy')
   }
 }
 

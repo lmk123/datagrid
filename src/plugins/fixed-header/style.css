@@ -1,0 +1,16 @@
+.datagrid .fixed-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.datagrid .fake-header {
+  visibility: hidden;
+}
+
+.datagrid .scroll-container {
+  overflow: scroll;
+}
