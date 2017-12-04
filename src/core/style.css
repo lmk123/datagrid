@@ -1,3 +1,37 @@
+.datagrid {
+  position: relative;
+}
+
+.datagrid .modal {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.datagrid.show-modal .modal {
+  display: flex;
+}
+
 .datagrid table {
   min-width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.datagrid th,
+.datagrid td {
+  text-align: center;
+  padding: 0;
+}
+
+.datagrid td {
+  word-wrap: break-word;
+  word-break: break-all;
 }

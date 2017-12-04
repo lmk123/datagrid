@@ -1,7 +1,8 @@
 import { DataGrid } from '../src/index'
 
-const grid = new DataGrid
+const grid = new DataGrid()
 document.body.appendChild(grid.el)
+grid.setData({ rows: [], columns: [] })
 
 setTimeout(() => {
   grid.setData({
