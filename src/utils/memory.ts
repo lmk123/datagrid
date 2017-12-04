@@ -12,13 +12,13 @@ interface FnCaches {
  * @param fn 执行计算的函数
  * @param generateKey 根据函数参数计算唯一的缓存键的函数
  */
-export default function<T, K>(
-  fn: ((...args: K[]) => T),
+export default function<T>(
+  fn: ((...args: any[]) => T),
   generateKey = generate
 ) {
   const caches: FnCaches = {}
-  return function<U>(this: U, ...args: K[]): T {
+  return function(...args: any[]): T {
     const cacheKey = generateKey(args)
-    return caches[cacheKey] || (caches[cacheKey] = fn.apply(this, args))
+    return caches[cacheKey] || (caches[cacheKey] = fn.apply(null, args))
   }
 }
