@@ -15,6 +15,7 @@ export interface Row {
 export interface DataGridOptions {
   th?: (column: ColumnObj) => string
   td?: (column: ColumnObj, row: Row) => string
+  plugins?: Plugin[]
 }
 
 export interface InnerDataGridOptions extends DataGridOptions {
@@ -36,8 +37,6 @@ function defaultTdRenderer(column: ColumnObj, row: Row) {
 
 const fragment = document.createDocumentFragment()
 
-const createdFns: Plugin['created'][] = []
-
 export class DataGrid extends TinyEmitter {
   options: InnerDataGridOptions
   el: HTMLDivElement
@@ -45,13 +44,14 @@ export class DataGrid extends TinyEmitter {
 
   constructor(options: DataGridOptions = {}) {
     super()
-    // 执行插件代码
-    createdFns.forEach(created => created!(this))
-
-    this.options = Object.assign(options, {
-      td: defaultTdRenderer,
-      th: defaultThRenderer
-    })
+    this.options = Object.assign(
+      {
+        td: defaultTdRenderer,
+        th: defaultThRenderer,
+        plugins: []
+      },
+      options
+    )
     const el = (this.el = document.createElement('div'))
     el.className = 'datagrid'
     el.innerHTML = template
@@ -60,6 +60,7 @@ export class DataGrid extends TinyEmitter {
       tbody: el.getElementsByTagName('tbody')[0],
       modal: el.getElementsByClassName('modal-content')[0]
     }
+    this.options.plugins!.forEach(plugin => plugin(this))
   }
 
   setData(data: TableData) {
@@ -120,20 +121,5 @@ export class DataGrid extends TinyEmitter {
 }
 
 export interface Plugin {
-  install?: (Constructor: typeof DataGrid) => void
-  created?: (grid: DataGrid) => void
-}
-
-/**
- * 应用一个插件
- * @param plugin
- */
-export function use(plugin: Plugin) {
-  if (plugin.install) {
-    plugin.install(DataGrid)
-  }
-
-  if (plugin.created) {
-    createdFns.push(plugin.created)
-  }
+  (grid: DataGrid): void
 }
