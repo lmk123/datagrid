@@ -2,6 +2,8 @@ import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
 
+export type Constructor<T> = new(...args: any[]) => T
+
 export interface ColumnObj {
   key: string
 }
@@ -62,7 +64,6 @@ export default class DataGrid extends TinyEmitter {
       tbody: el.getElementsByTagName('tbody')[0],
       modal: el.getElementsByClassName('modal-content')[0]
     }
-    this.options.plugins!.forEach(plugin => plugin(this))
   }
 
   setData(data: TableData) {
@@ -129,8 +130,4 @@ export default class DataGrid extends TinyEmitter {
   destroy() {
     this.emit('beforeDestroy')
   }
-}
-
-export interface Plugin {
-  (grid: DataGrid): void
 }
