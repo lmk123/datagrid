@@ -1,0 +1,17 @@
+.datagrid {
+  overflow: hidden;
+}
+
+.fixed-grid {
+  position: absolute;
+  top: 0;
+  background: #fff;
+}
+
+.fixed-grid-left {
+  left: 0;
+}
+
+.fixed-grid-right {
+  right: 0;
+}

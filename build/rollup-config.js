@@ -23,6 +23,7 @@ module.exports = function(isBuild) {
     }),
     require('rollup-plugin-node-resolve')(),
     require('rollup-plugin-typescript2')({
+      abortOnError: false,
       useTsconfigDeclarationDir: isBuild,
       tsconfigOverride: isBuild
         ? {

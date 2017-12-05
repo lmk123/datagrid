@@ -1,8 +1,8 @@
-import DataGrid, { fixedHeader } from '../src/index'
+import DataGrid, { fixedHeader, fixedTable } from '../src/index'
 import data from './data'
 
 const grid = new DataGrid({
-  plugins: [fixedHeader]
+  plugins: [fixedHeader, fixedTable]
 })
 document.body.appendChild(grid.el)
 grid.setData({ rows: [], columns: [] })
@@ -24,4 +24,6 @@ setTimeout(() => {
 
 setTimeout(() => {
   grid.setData(data)
+  grid.setFixed(3)
+  grid.setFixed(1, 'right')
 }, 4000)

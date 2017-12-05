@@ -41,6 +41,7 @@ export default class DataGrid extends TinyEmitter {
   options: InnerDataGridOptions
   el: HTMLDivElement
   ui: { [prop: string]: Element }
+  curData: TableData
 
   constructor(options: DataGridOptions = {}) {
     super()
@@ -66,6 +67,10 @@ export default class DataGrid extends TinyEmitter {
 
   setData(data: TableData) {
     const { columns = [], rows = [] } = data
+    this.curData = {
+      columns,
+      rows
+    }
     const { thead, tbody } = this.ui
 
     // 首先重新渲染表头
