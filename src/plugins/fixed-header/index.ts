@@ -1,7 +1,7 @@
 import DataGrid from '../../core/index'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
-import getProperty from '../../utils/get-property'
+import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
 export default function(datagrid: DataGrid) {
@@ -50,7 +50,7 @@ export default function(datagrid: DataGrid) {
       'scroll',
       rafThrottle(() => {
         // @ts-ignore
-        fixedHeaderTable.style[getProperty('transform')] = `translate3d(-${
+        fixedHeaderTable.style[getCSSProperty('transform')] = `translate3d(-${
           scrollContainer.scrollLeft
         }px,0,0)`
       })

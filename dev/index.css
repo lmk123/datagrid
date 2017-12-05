@@ -3,9 +3,13 @@
 }
 
 .scroll-container {
-  height:  400px;
+  height: 400px;
 }
 
 td {
   min-width: 150px;
+}
+
+th {
+  white-space: nowrap;
 }
