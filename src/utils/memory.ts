@@ -1,5 +1,5 @@
 /** 默认情况下使用 join 将参数转换成一个字符串作为唯一的缓存键 */
-function generate(args: any[]) {
+export function generate(args: any[]) {
   return args.join()
 }
 

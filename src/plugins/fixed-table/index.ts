@@ -1,9 +1,13 @@
+// https://github.com/Microsoft/TypeScript/issues/5711
+import * as t from 'tinyemitter'
+import * as g from '../../core/index'
+
 import DataGrid, { DataGridConstructor } from '../../core/index'
 import './style.css'
 
 const { some, forEach } = Array.prototype
 
-interface FixedGrid extends DataGrid {
+export interface FixedGrid extends DataGrid {
   fixed: number
 }
 
@@ -12,7 +16,7 @@ export interface FixedGrids {
   right?: FixedGrid
 }
 
-type GridPlace = keyof FixedGrids
+export type GridPlace = keyof FixedGrids
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class FixedHeader extends Base {

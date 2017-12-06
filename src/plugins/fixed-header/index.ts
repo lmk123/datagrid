@@ -1,3 +1,7 @@
+// https://github.com/Microsoft/TypeScript/issues/5711
+import * as g from '../../core/index'
+import * as t from 'tinyemitter'
+
 import DataGrid, { DataGridConstructor, TableData } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
