@@ -2,7 +2,7 @@ import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
 
-export type Constructor<T> = new(...args: any[]) => T
+export type DataGridConstructor = new(...args: any[]) => DataGrid
 
 export interface ColumnObj {
   key: string

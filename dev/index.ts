@@ -1,7 +1,7 @@
-import createDataGrid, { fixedHeader } from '../src/index'
+import DataGrid, { fixedHeader } from '../src/index'
 import data from './data'
 
-const grid = createDataGrid({}, fixedHeader)
+const grid = new (fixedHeader(DataGrid))()
 
 document.body.appendChild(grid.el)
 grid.setData({ rows: [], columns: [] })

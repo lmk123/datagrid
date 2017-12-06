@@ -1,10 +1,10 @@
-import DataGrid, { Constructor, TableData } from '../../core/index'
+import DataGrid, { DataGridConstructor, TableData } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
-export default function<T extends Constructor<DataGrid>>(Base: T) {
+export default function<T extends DataGridConstructor>(Base: T) {
   return class FixedHeader extends Base {
     private fixedHeaderTable: HTMLTableElement
     private colGroups: HTMLTableColElement
