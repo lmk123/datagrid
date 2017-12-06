@@ -19,6 +19,11 @@
   display: flex;
 }
 
+.datagrid .scroll-container {
+  height: 100%;
+  overflow: scroll;
+}
+
 .datagrid table {
   min-width: 100%;
   border-collapse: collapse;

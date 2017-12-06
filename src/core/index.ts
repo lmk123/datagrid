@@ -59,6 +59,7 @@ export default class DataGrid extends TinyEmitter {
     el.className = 'datagrid'
     el.innerHTML = template
     Object.assign(this.ui, {
+      scrollContainer: el.getElementsByClassName('scroll-container')[0],
       table: el.getElementsByTagName('table')[0],
       thead: el.getElementsByTagName('thead')[0],
       tbody: el.getElementsByTagName('tbody')[0],

@@ -18,11 +18,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
     constructor(...args: any[]) {
       super(...args)
       const { el, ui } = this
-
-      // 创建一个滚动区域包裹表格
-      const scrollContainer = document.createElement('div')
-      scrollContainer.className = 'scroll-container'
-      scrollContainer.appendChild(ui.table)
+      const { scrollContainer } = ui
 
       // 创建一个包含表头的 div，通过 CSS 固定在滚动区域上方
       const fixedHeaderWrapper = document.createElement('div')
@@ -36,7 +32,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
       fixedHeaderWrapper.appendChild(fixedHeaderTable)
       // 重新布局
       el.appendChild(fixedHeaderWrapper)
-      el.appendChild(scrollContainer)
 
       this.unbindEvents.push(
         addEvent(
