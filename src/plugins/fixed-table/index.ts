@@ -50,15 +50,24 @@ export default function<T extends DataGridConstructor>(Base: T) {
       const fixedTable = this.fixedTables[place]
       if (!fixedTable) return
       const { fixed } = fixedTable
-      // 同步 th 的宽度
+      // 同步 table 和 th 的宽度
       let colHtml = ''
-      some.call(
-        this.ui.thead.children,
-        (th: HTMLTableHeaderCellElement, index: number) => {
-          if (index === fixed) return true
-          colHtml += `<col width="${th.clientWidth}">`
-        }
-      )
+      let width = 0
+      const ths = this.ui.thead.children
+      const thsLength = ths.length - 1
+
+      const getTh =
+        place === 'left'
+          ? (index: number) => ths[index]
+          : (index: number) => ths[thsLength - index]
+
+      some.call(ths, (th: HTMLTableHeaderCellElement, index: number) => {
+        if (index === fixed) return true
+        const { clientWidth } = getTh(index)
+        colHtml += `<col width="${clientWidth}">`
+        width += clientWidth
+      })
+      fixedTable.el.style.width = `${width}px`
       fixedTable.ui.colgroup.innerHTML = colHtml
       // 同步 tr 的高度
       const trs = fixedTable.ui.tbody.children
