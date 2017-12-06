@@ -21,6 +21,8 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "devDependencies": {
+    "autoprefixer": "^7.2.1",
+    "cssnano": "^3.10.0",
     "fs-extra": "^4.0.2",
     "postcss-cssnext": "^3.0.2",
     "rollup": "^0.50.1",

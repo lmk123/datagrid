@@ -9,7 +9,16 @@ const banner = [
 
 module.exports = function(isBuild) {
   const plugins = [
-    require('rollup-plugin-postcss')(),
+    require('rollup-plugin-postcss')({
+      plugins: isBuild
+        ? [
+            require('autoprefixer')(),
+            require('cssnano')({
+              autoprefixer: false
+            })
+          ]
+        : undefined
+    }),
     require('rollup-plugin-html')({
       htmlMinifierOptions: isBuild
         ? {
