@@ -18,7 +18,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
     constructor(...args: any[]) {
       super(...args)
       const { el, ui } = this
-      const { scrollContainer } = ui
 
       // 创建一个包含表头的 div，通过 CSS 固定在滚动区域上方
       const fixedHeaderWrapper = document.createElement('div')
@@ -30,9 +29,10 @@ export default function<T extends DataGridConstructor>(Base: T) {
       // 将原本的 thead 移动到固定表头中
       fixedHeaderTable.appendChild(ui.thead)
       fixedHeaderWrapper.appendChild(fixedHeaderTable)
-      // 重新布局
+
       el.appendChild(fixedHeaderWrapper)
 
+      const { scrollContainer } = ui
       this.unbindEvents.push(
         addEvent(
           window,

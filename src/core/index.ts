@@ -42,7 +42,7 @@ const fragment = document.createDocumentFragment()
 export default class DataGrid extends TinyEmitter {
   protected options: InnerDataGridOptions
   readonly el = document.createElement('div')
-  readonly ui: { [prop: string]: Element } = {}
+  readonly ui: { [prop: string]: HTMLElement } = {}
   protected curData: TableData
 
   constructor(options: DataGridOptions = {}) {
