@@ -2,7 +2,7 @@ import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
 
-export type DataGridConstructor = new(...args: any[]) => DataGrid
+export type DataGridConstructor = new (...args: any[]) => DataGrid
 
 export interface ColumnObj {
   key: string
@@ -40,10 +40,10 @@ function defaultTdRenderer(column: ColumnObj, row: Row) {
 const fragment = document.createDocumentFragment()
 
 export default class DataGrid extends TinyEmitter {
-  options: InnerDataGridOptions
-  el: HTMLDivElement
-  ui: { [prop: string]: Element }
-  curData: TableData
+  protected options: InnerDataGridOptions
+  readonly el = document.createElement('div')
+  readonly ui: { [prop: string]: Element } = {}
+  protected curData: TableData
 
   constructor(options: DataGridOptions = {}) {
     super()
@@ -55,15 +55,15 @@ export default class DataGrid extends TinyEmitter {
       },
       options
     )
-    const el = (this.el = document.createElement('div'))
+    const el = this.el
     el.className = 'datagrid'
     el.innerHTML = template
-    this.ui = {
+    Object.assign(this.ui, {
       table: el.getElementsByTagName('table')[0],
       thead: el.getElementsByTagName('thead')[0],
       tbody: el.getElementsByTagName('tbody')[0],
       modal: el.getElementsByClassName('modal-content')[0]
-    }
+    })
   }
 
   setData(data: TableData) {
