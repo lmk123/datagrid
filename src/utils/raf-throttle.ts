@@ -1,4 +1,4 @@
-const raf =
+export const raf =
   window.requestAnimationFrame ||
   window.webkitRequestAnimationFrame ||
   // @ts-ignore

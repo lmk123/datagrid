@@ -4,7 +4,7 @@ import * as t from 'tinyemitter'
 
 import DataGrid, { DataGridConstructor, TableData } from '../../core/index'
 import addEvent from '../../utils/add-event'
-import rafThrottle from '../../utils/raf-throttle'
+import rafThrottle, { raf } from '../../utils/raf-throttle'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
@@ -80,7 +80,11 @@ export default function<T extends DataGridConstructor>(Base: T) {
       ) as HTMLTableSectionElement
       lastThead.className = 'fake-header'
       table.insertBefore(lastThead, ui.tbody)
-      this.syncFixedHeader()
+      // 需要等到 fixedTable 中的 syncFixedWidth 更新完之后再同步宽度，
+      // 不然会出现 header 宽度不一致的问题
+      raf(() => {
+        this.syncFixedHeader()
+      })
     }
 
     destroy() {

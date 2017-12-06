@@ -1,11 +1,11 @@
-.datagrid {
-  overflow: hidden;
-}
-
 .fixed-grid {
   position: absolute;
   top: 0;
   background: #fff;
+}
+
+.fixed-grid .scroll-container {
+  overflow: hidden;
 }
 
 .fixed-grid-left {

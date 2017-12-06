@@ -107,10 +107,10 @@ export default function<T extends DataGridConstructor>(Base: T) {
       })
       d.el.classList.add('fixed-grid', 'fixed-grid-' + place)
       this.fixedTables[place] = d
-      this.el.appendChild(d.el)
       const { ui } = d
       const colgroup = (ui.colgroup = document.createElement('colgroup'))
       ui.table.appendChild(colgroup)
+      this.el.appendChild(d.el)
       return d
     }
   }
