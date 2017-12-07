@@ -87,10 +87,10 @@ export default class BaseGrid extends TinyEmitter {
         th.innerHTML = this.options.th!(column)
         fragment.appendChild(th)
       })
-      thead.innerHTML = ''
+      thead.innerText = ''
       thead.appendChild(fragment)
     } else {
-      thead.innerHTML = ''
+      thead.innerText = ''
     }
 
     // 然后渲染表格
@@ -109,11 +109,11 @@ export default class BaseGrid extends TinyEmitter {
         })
         fragment.appendChild(tr)
       })
-      tbody.innerHTML = ''
+      tbody.innerText = ''
       tbody.appendChild(fragment)
       this.hideModal()
     } else {
-      tbody.innerHTML = ''
+      tbody.innerText = ''
       this.showModal()
     }
   }
