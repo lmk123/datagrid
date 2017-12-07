@@ -1,13 +1,22 @@
+const pkg = require('../package.json')
+
 const name = 'Datagrid'
 const banner = [
   '/*!',
-  ' * datagrid v' + require('../package.json').version,
+  ' * datagrid v' + pkg.version,
   ' * https://github.com/lmk123/datagrid',
   ' * Released under the MIT License.',
   ' */'
 ].join('\n')
 
-module.exports = function(isBuild) {
+module.exports = function(isBuild, isModule) {
+  return {
+    inputOptions: getInputOptions(isBuild, isModule),
+    outputOptions: getOutputOptions(isBuild, isModule)
+  }
+}
+
+function getInputOptions(isBuild, isModule) {
   const plugins = [
     require('rollup-plugin-postcss')({
       plugins: isBuild
@@ -29,8 +38,14 @@ module.exports = function(isBuild) {
             removeAttributeQuotes: true
           }
         : undefined
-    }),
-    require('rollup-plugin-node-resolve')(),
+    })
+  ]
+
+  if (!isModule) {
+    plugins.push(require('rollup-plugin-node-resolve')())
+  }
+
+  plugins.push(
     require('rollup-plugin-typescript2')({
       useTsconfigDeclarationDir: isBuild,
       tsconfigOverride: isBuild
@@ -44,7 +59,8 @@ module.exports = function(isBuild) {
             include: ['src/**/*', 'dev/**/*']
           }
     })
-  ]
+  )
+
   if (isBuild) {
     plugins.push(require('rollup-plugin-buble')())
   } else {
@@ -56,36 +72,44 @@ module.exports = function(isBuild) {
       require('rollup-plugin-livereload')()
     )
   }
+
   return {
-    inputOptions: {
-      input: isBuild ? './src/index.ts' : './dev/index.ts',
-      plugins
-    },
-    outputOptions: isBuild
-      ? [
-          {
-            file: './dist/datagrid.esm.js',
-            format: 'es',
-            banner
-          },
-          {
-            file: './dist/datagrid.common.js',
-            format: 'cjs',
-            banner
-          },
-          {
-            file: './dist/datagrid.js',
-            format: 'umd',
-            name,
-            banner
-          }
-        ]
-      : [
-          {
-            file: './dev/index.js',
-            format: 'iife',
-            name
-          }
-        ]
+    input: isBuild ? './src/index.ts' : './dev/index.ts',
+    external: isModule ? Object.keys(pkg.dependencies) : undefined,
+    plugins
   }
+}
+
+function getOutputOptions(isBuild, isModule) {
+  if (!isBuild) {
+    return [
+      {
+        file: './dev/index.js',
+        format: 'iife',
+        name
+      }
+    ]
+  }
+  if (isModule) {
+    return [
+      {
+        file: './dist/datagrid.esm.js',
+        format: 'es',
+        banner
+      },
+      {
+        file: './dist/datagrid.common.js',
+        format: 'cjs',
+        banner
+      }
+    ]
+  }
+  return [
+    {
+      file: './dist/datagrid.js',
+      format: 'umd',
+      name,
+      banner
+    }
+  ]
 }
