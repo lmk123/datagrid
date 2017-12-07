@@ -5,6 +5,7 @@
 }
 
 .fixed-grid .scroll-container {
+  /* 故意让固定表格无法滚动 */
   overflow: hidden;
 }
 

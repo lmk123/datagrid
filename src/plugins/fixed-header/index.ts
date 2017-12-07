@@ -46,6 +46,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
           scrollContainer,
           'scroll',
           rafThrottle(() => {
+            // 使用 transform 会比同步 scrollLeft 流畅很多
             fixedHeaderTable.style[
               // @ts-ignore
               getCSSProperty('transform')
@@ -55,6 +56,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       )
     }
 
+    /** 同步表头中单元格的宽度。 */
     syncFixedHeader() {
       this.colGroup.innerHTML = Array.prototype.reduce.call(
         this.lastThead.children,
@@ -67,6 +69,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       this.fixedHeaderTable.style.width = this.ui.table.clientWidth + 'px'
     }
 
+    /** 重载 setData 方法，在渲染完表格后替换旧的固定表头。 */
     setData(data: TableData) {
       super.setData(data)
 
@@ -87,9 +90,9 @@ export default function<T extends DataGridConstructor>(Base: T) {
       })
     }
 
-    destroy() {
+    destroy(...args: any[]) {
       this.unbindEvents.forEach(unbind => unbind())
-      super.destroy()
+      super.destroy(...args)
     }
   }
 }

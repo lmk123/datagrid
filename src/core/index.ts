@@ -1,3 +1,7 @@
+/**
+ * @fileOverview 输出一个最基本的、仅包含核心功能的表格类。
+ */
+
 import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
@@ -67,6 +71,7 @@ export default class BaseGrid extends TinyEmitter {
     })
   }
 
+  /** 根据数据生成表格内容。 */
   setData(data: TableData) {
     const { columns = [], rows = [] } = data
     this.curData = {
@@ -118,14 +123,28 @@ export default class BaseGrid extends TinyEmitter {
     }
   }
 
+  /** 显示一段消息。默认会显示“暂无数据” */
   showModal(html = '暂无数据') {
     this.ui.modal.innerHTML = html
     this.el.classList.add('show-modal')
   }
 
+  /** 隐藏消息。 */
   hideModal() {
     this.el.classList.remove('show-modal')
   }
 
-  destroy() {}
+  /**
+   * 销毁对象。
+   * @param remove 如果为 true，则从 DOM 中删除元素。
+   */
+  destroy(remove?: Boolean) {
+    if (remove) {
+      const { el } = this
+      const { parentElement } = el
+      if (parentElement) {
+        parentElement.removeChild(el)
+      }
+    }
+  }
 }

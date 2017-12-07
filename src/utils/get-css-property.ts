@@ -7,6 +7,10 @@ const { style } = document.createElement('div')
 type Vendor = 'webkit' | 'ms' | 'moz' | 'o'
 let vd: Vendor
 
+/**
+ * 获取一个 CSS 属性在当前浏览器中可用的名字。
+ * @param property 属性的标准名称。
+ */
 export default memory((property: CSSProperty) => {
   if (property in style) return property
   const camelCase = property[0].toUpperCase() + property.slice(1)

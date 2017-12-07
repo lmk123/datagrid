@@ -12,7 +12,6 @@
   right: 0;
   bottom: 0;
   background-color: #fff;
-  background-color: rgba(255, 255, 255, 0.6);
 }
 
 .datagrid.show-modal .modal {
@@ -28,7 +27,6 @@
   min-width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-  /* table-layout: fixed; */
 }
 
 .datagrid td {

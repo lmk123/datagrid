@@ -41,6 +41,11 @@ export default function<T extends DataGridConstructor>(Base: T) {
       )
     }
 
+    /**
+     * 创建或更新固定在左侧或右侧的表格。
+     * @param count 固定表格的列数。
+     * @param place 固定表格的位置，默认为左侧。
+     */
     setFixed(count: number, place: GridPlace = 'left') {
       let fixedTable = this.fixedTables[place]
       if (!count) {
@@ -65,6 +70,10 @@ export default function<T extends DataGridConstructor>(Base: T) {
       this.syncFixedWidth(place)
     }
 
+    /**
+     * 同步一个固定表格的宽度、高度等状态。
+     * @param place 要同步宽度的表格的位置。
+     */
     syncFixedWidth(place: GridPlace) {
       const fixedTable = this.fixedTables[place]
       if (!fixedTable) return
@@ -99,6 +108,10 @@ export default function<T extends DataGridConstructor>(Base: T) {
       )
     }
 
+    /**
+     * 创建固定在两侧的表格实例的方法。
+     * @param place 表格的位置
+     */
     private createFixedGrid(place: GridPlace) {
       const { options } = this
       const d = new (this.constructor as typeof DataGrid)({
