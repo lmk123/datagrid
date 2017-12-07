@@ -2,7 +2,7 @@ import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
 
-export type DataGridConstructor = new (...args: any[]) => DataGrid
+export type DataGridConstructor = new (...args: any[]) => BaseGrid
 
 export interface ColumnObj {
   key: string
@@ -39,7 +39,7 @@ function defaultTdRenderer(column: ColumnObj, row: Row) {
 
 const fragment = document.createDocumentFragment()
 
-export default class DataGrid extends TinyEmitter {
+export default class BaseGrid extends TinyEmitter {
   protected options: InnerDataGridOptions
   readonly el = document.createElement('div')
   readonly ui: { [prop: string]: HTMLElement } = {}
@@ -116,7 +116,6 @@ export default class DataGrid extends TinyEmitter {
       tbody.innerHTML = ''
       this.showModal()
     }
-    this.emit('afterSetData')
   }
 
   showModal(html = '暂无数据') {
@@ -128,7 +127,5 @@ export default class DataGrid extends TinyEmitter {
     this.el.classList.remove('show-modal')
   }
 
-  destroy() {
-    this.emit('beforeDestroy')
-  }
+  destroy() {}
 }
