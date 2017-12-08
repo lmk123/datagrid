@@ -75,7 +75,7 @@ export default class BaseGrid extends TinyEmitter {
   /** 如果当前实例是 fixedTable 创建的内部表格则会有这个属性 */
   protected readonly parent?: BaseGrid
   /** 如果当前实例用了 fixedTable 插件，则会有这个属性 */
-  protected children: BaseGrid[]
+  protected children?: BaseGrid[]
 
   constructor(options: DataGridOptions = {}) {
     super()

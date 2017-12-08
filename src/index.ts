@@ -12,8 +12,10 @@ import sort from './plugins/sort'
 
 // 默认返回一个功能丰富的表格类。
 // 这里的繁琐写法是为了让 TypeScript 能正确解析类型。
+//
 // 注意：由于同时使用了 `export` 和 `export default`，
 // CommonJS 和浏览器端要使用 `default` 属性读取到这个输出。
+//
 // CommonJS: `const DataGrid = require('datagrid').default`
 // 浏览器：`const Grid = DataGrid.default`
 export default sort(fixedHeader(fixedTable(BaseGrid)))

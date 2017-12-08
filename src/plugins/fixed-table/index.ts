@@ -15,6 +15,8 @@ export interface FixedGrids {
 
 export type GridPlace = keyof FixedGrids
 
+// TODO: 同步主表格的 hover 状态
+
 const { some, forEach } = Array.prototype
 
 export default function<T extends DataGridConstructor>(Base: T) {
