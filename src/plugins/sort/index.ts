@@ -21,6 +21,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
     private sortColumnIndex: number
     private sortOrderIndex = 0
+
     constructor(...args: any[]) {
       super(...args)
 
