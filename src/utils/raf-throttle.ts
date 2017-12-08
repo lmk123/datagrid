@@ -1,3 +1,4 @@
+// https://caniuse.com/#feat=requestanimationframe
 export const raf =
   window.requestAnimationFrame ||
   window.webkitRequestAnimationFrame ||

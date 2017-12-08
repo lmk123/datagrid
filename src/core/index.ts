@@ -19,9 +19,20 @@ export interface Row {
 }
 
 export interface DataGridOptions {
-  th?: (column: ColumnObj) => string
-  td?: (column: ColumnObj, row: Row) => string
-  plugins?: Plugin[]
+  th?: (column: ColumnObj, index: number) => string | Node
+  td?: (
+    column: ColumnObj,
+    row: Row,
+    columnIndex: number,
+    rowIndex: number
+  ) => string | Node
+  /**
+   * fixedTable 插件会在生成固定表格时使用当前构造函数创建表格实例挂在左右两侧，
+   * 创建时会传入父表格实例；反过来说，若这个属性存在，
+   * 则说明当前的表格实例其实是 fixedTable 插件创建的内部表格，
+   * 其他插件可能会据此执行不同的逻辑。
+   */
+  parent?: BaseGrid
 }
 
 export interface InnerDataGridOptions extends DataGridOptions {
@@ -41,6 +52,19 @@ function defaultTdRenderer(column: ColumnObj, row: Row) {
   return row[column.key]
 }
 
+/**
+ * 根据内容的类型选择不同的方式填充节点。
+ * @param node 需要填充的节点。
+ * @param content 内容可以是字符串或者一个节点。如果有多个节点，可以传入一个 Fragment 对象。
+ */
+function fillNode(node: HTMLElement, content: string | Node) {
+  if (typeof content === 'string') {
+    node.innerHTML = content
+  } else {
+    node.appendChild(content)
+  }
+}
+
 const fragment = document.createDocumentFragment()
 
 export default class BaseGrid extends TinyEmitter {
@@ -48,18 +72,25 @@ export default class BaseGrid extends TinyEmitter {
   readonly el = document.createElement('div')
   readonly ui: { [prop: string]: HTMLElement } = {}
   protected curData: TableData
+  /** 如果当前实例是 fixedTable 创建的内部表格则会有这个属性 */
+  protected readonly parent?: BaseGrid
+  /** 如果当前实例用了 fixedTable 插件，则会有这个属性 */
+  protected children: BaseGrid[]
 
   constructor(options: DataGridOptions = {}) {
     super()
-    this.options = Object.assign(
+    const realOptions = (this.options = Object.assign(
       {
         td: defaultTdRenderer,
-        th: defaultThRenderer,
-        plugins: []
+        th: defaultThRenderer
       },
       options
-    )
-    const el = this.el
+    ))
+    const { parent } = realOptions
+    if (parent) {
+      this.parent = parent
+    }
+    const { el } = this
     el.className = 'datagrid'
     el.innerHTML = template
     Object.assign(this.ui, {
@@ -82,14 +113,15 @@ export default class BaseGrid extends TinyEmitter {
 
     // 首先重新渲染表头
     if (columns.length) {
-      columns.forEach(column => {
+      columns.forEach((column, index) => {
         if (typeof column === 'string') {
           column = {
             key: column
           }
         }
         const th = document.createElement('th')
-        th.innerHTML = this.options.th!(column)
+        fillNode(th, this.options.th!(column, index))
+        this.emit('after th render', th, column, index)
         fragment.appendChild(th)
       })
       thead.textContent = ''
@@ -100,16 +132,17 @@ export default class BaseGrid extends TinyEmitter {
 
     // 然后渲染表格
     if (rows.length) {
-      rows.forEach(row => {
+      rows.forEach((row, rowIndex) => {
         const tr = document.createElement('tr')
-        columns.forEach(column => {
+        columns.forEach((column, columnIndex) => {
           if (typeof column === 'string') {
             column = {
               key: column
             }
           }
           const td = document.createElement('td')
-          td.innerHTML = this.options.td!(column, row)
+          fillNode(td, this.options.td!(column, row, columnIndex, rowIndex))
+          this.emit('after td render', td, column, row, rowIndex, columnIndex)
           tr.appendChild(td)
         })
         fragment.appendChild(tr)

@@ -2,15 +2,15 @@
 import * as t from 'tinyemitter'
 import * as g from '../../core/index'
 
-import DataGrid, { DataGridConstructor } from '../../core/index'
+import BaseGrid, { DataGridConstructor } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
 export interface FixedGrids {
-  left?: DataGrid
-  right?: DataGrid
+  left?: BaseGrid
+  right?: BaseGrid
 }
 
 export type GridPlace = keyof FixedGrids
@@ -114,17 +114,20 @@ export default function<T extends DataGridConstructor>(Base: T) {
      */
     private createFixedGrid(place: GridPlace) {
       const { options } = this
-      const d = new (this.constructor as typeof DataGrid)({
+      const innerTable = new (this.constructor as typeof BaseGrid)({
+        // XXX: 使用 copy 复制原对象
         td: options.td,
-        th: options.th
+        th: options.th,
+        parent: this
       })
-      d.el.classList.add('fixed-grid', 'fixed-grid-' + place)
-      this.fixedTables[place] = d
-      const { ui } = d
+      ;(this.children || (this.children = [])).push(innerTable)
+      innerTable.el.classList.add('fixed-grid', 'fixed-grid-' + place)
+      this.fixedTables[place] = innerTable
+      const { ui } = innerTable
       const colgroup = (ui.colgroup = document.createElement('colgroup'))
       ui.table.appendChild(colgroup)
-      this.el.appendChild(d.el)
-      return d
+      this.el.appendChild(innerTable.el)
+      return innerTable
     }
   }
 }
