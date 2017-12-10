@@ -6,3 +6,8 @@ th {
   white-space: nowrap;
   padding: 5px 10px;
 }
+
+.hover-row {
+  background: green;
+  color: #fff;
+}

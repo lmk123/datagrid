@@ -27,6 +27,7 @@ export interface DataGridOptions {
     columnIndex: number,
     rowIndex: number
   ) => string | Node
+  parent?: BaseGrid
 }
 
 export interface InnerDataGridOptions extends DataGridOptions {
@@ -73,7 +74,7 @@ export default class BaseGrid extends TinyEmitter {
   protected children?: BaseGrid[]
   // 下面的这些属性都只在由 fixedTable 插件内部创建的表格实例上存在
   /** 如果当前实例是 fixedTable 创建的内部表格则会有这个属性 */
-  /* protected */ parent?: BaseGrid
+  /* protected */ readonly parent?: BaseGrid
   /** 这个固定表格当前固定的列的个数 */
   /* protected */ fixedColumns?: number
   /** 这个固定表格的位置 */
@@ -88,6 +89,7 @@ export default class BaseGrid extends TinyEmitter {
       },
       options
     )
+    this.parent = options && options.parent
     const { el } = this
     el.className = 'datagrid'
     el.innerHTML = template

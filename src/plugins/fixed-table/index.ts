@@ -5,6 +5,7 @@ import * as g from '../../core/index'
 import BaseGrid, { DataGridConstructor } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
+import closest from '../../utils/closest'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
@@ -17,28 +18,61 @@ export type GridPlace = keyof FixedGrids
 
 // TODO: 同步主表格的 hover 状态
 
-const { some, forEach } = Array.prototype
+const { some, forEach, indexOf } = Array.prototype
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
+    private lastHoverIndex: number
     private readonly fixedTables: FixedGrids = {}
+    private readonly fixedTableEvents: (() => void)[] = []
 
     constructor(...args: any[]) {
       super(...args)
       const { scrollContainer } = this.ui
       const { fixedTables } = this
-      addEvent(
-        scrollContainer,
-        'scroll',
-        rafThrottle(() => {
-          for (let place in fixedTables) {
-            fixedTables[place as GridPlace]!.ui.table.style[
-              // @ts-ignore
-              getCSSProperty('transform')
-            ] = `translate3d(0,-${scrollContainer.scrollTop}px,0)`
-          }
-        })
-      )
+      if (!this.parent) {
+        this.fixedTableEvents.push(
+          // 同步表格的滚动条位置
+          addEvent(
+            scrollContainer,
+            'scroll',
+            rafThrottle(() => {
+              for (let place in fixedTables) {
+                fixedTables[place as GridPlace]!.ui.table.style[
+                  // @ts-ignore
+                  getCSSProperty('transform')
+                ] = `translate3d(0,-${scrollContainer.scrollTop}px,0)`
+              }
+            })
+          ),
+          // 同步表格的 hover 状态
+          addEvent(this.el, 'mouseover', e => {
+            const tr = closest.call(
+              e.target,
+              '.datagrid tbody tr'
+            ) as HTMLTableRowElement
+            if (!tr) return
+            const trs = tr.parentElement!.children
+            const { lastHoverIndex } = this
+            const index = indexOf.call(trs, tr) as number
+            if (lastHoverIndex === index) return
+            this.lastHoverIndex = index
+            const setHover = (grid: BaseGrid) => {
+              const trs = grid.ui.tbody.children
+              const lastHoverTr = trs[lastHoverIndex] as HTMLTableRowElement
+              if (lastHoverTr) {
+                lastHoverTr.classList.remove('hover-row')
+              }
+              trs[index].classList.add('hover-row')
+            }
+            setHover(this)
+            const { children } = this
+            if (children) {
+              children.forEach(setHover)
+            }
+          })
+        )
+      }
     }
 
     /**
@@ -113,8 +147,14 @@ export default function<T extends DataGridConstructor>(Base: T) {
      * @param place 表格的位置
      */
     private createFixedGrid(place: GridPlace) {
-      const innerTable = new (this.constructor as typeof BaseGrid)(this.options)
-      innerTable.parent = this
+      const innerTable = new (this.constructor as typeof BaseGrid)(
+        Object.assign(
+          {
+            parent: this
+          },
+          this.options
+        )
+      )
       innerTable.fixedPlace = place
       ;(this.children || (this.children = [])).push(innerTable)
       innerTable.el.classList.add('fixed-grid', 'fixed-grid-' + place)

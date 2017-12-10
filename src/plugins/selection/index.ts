@@ -23,8 +23,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
           ) as HTMLTableRowElement
           if (!tr) return
 
-          const trs = (tr.parentElement as HTMLTableSectionElement).children
-          const trIndex = indexOf.call(trs, tr)
+          const trs = tr.parentElement!.children
+          const trIndex = indexOf.call(trs, tr) as number
           const oldSelectionIndex = this.selectionIndex
           if (oldSelectionIndex !== trIndex) {
             this.selectionIndex = trIndex
@@ -41,9 +41,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
             updateSelected(this)
             const { children } = this
             if (children) {
-              children.forEach(grid => {
-                updateSelected(grid)
-              })
+              children.forEach(updateSelected)
             }
           }
         })
