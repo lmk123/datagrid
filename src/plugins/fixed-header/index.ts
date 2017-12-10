@@ -2,7 +2,7 @@
 import * as g from '../../core/index'
 import * as t from 'tinyemitter'
 
-import DataGrid, { DataGridConstructor, TableData } from '../../core/index'
+import { DataGridConstructor, TableData } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import rafThrottle, { raf } from '../../utils/raf-throttle'
 import getCSSProperty from '../../utils/get-css-property'

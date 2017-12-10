@@ -2,7 +2,7 @@
 import * as t from 'tinyemitter'
 import BaseGrid, * as g from '../../core/index'
 
-import DataGrid, { DataGridConstructor, Column } from '../../core/index'
+import { DataGridConstructor } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import closest from '../../utils/closest'
 

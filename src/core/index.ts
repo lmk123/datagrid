@@ -61,30 +61,33 @@ function fillNode(node: HTMLElement, content: string | Node) {
 
 const fragment = document.createDocumentFragment()
 
+// 下面的一些 protected 关键字是因为一个 bug 才被注释掉的，
+// @see https://github.com/Microsoft/TypeScript/issues/17744
+
 export default class BaseGrid extends TinyEmitter {
-  protected options: InnerDataGridOptions
   readonly el = document.createElement('div')
-  readonly ui: { [prop: string]: HTMLElement } = {}
+  /* protected */ readonly ui: { [prop: string]: HTMLElement } = {}
+  protected options: InnerDataGridOptions
   protected curData: TableData
   /** 如果当前实例用了 fixedTable 插件，则会有这个属性 */
   protected children?: BaseGrid[]
   // 下面的这些属性都只在由 fixedTable 插件内部创建的表格实例上存在
   /** 如果当前实例是 fixedTable 创建的内部表格则会有这个属性 */
-  parent?: BaseGrid
+  /* protected */ parent?: BaseGrid
   /** 这个固定表格当前固定的列的个数 */
-  fixedColumns?: number
+  /* protected */ fixedColumns?: number
   /** 这个固定表格的位置 */
-  fixedPlace?: GridPlace
+  /* protected */ fixedPlace?: GridPlace
 
   constructor(options: DataGridOptions = {}) {
     super()
-    const realOptions = (this.options = Object.assign(
+    this.options = Object.assign(
       {
         td: defaultTdRenderer,
         th: defaultThRenderer
       },
       options
-    ))
+    )
     const { el } = this
     el.className = 'datagrid'
     el.innerHTML = template

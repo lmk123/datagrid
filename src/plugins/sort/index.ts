@@ -2,18 +2,15 @@
 import * as t from 'tinyemitter'
 import * as g from '../../core/index'
 
-import DataGrid, { DataGridConstructor, Column } from '../../core/index'
+import { DataGridConstructor, Column } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import closest from '../../utils/closest'
 
-const DESC = -1, // 降序
-  ASC = 1, // 升序
-  NONE = 0 // 不排序
+// const DESC = -1, // 降序
+//   ASC = 1, // 升序
+//   NONE = 0 // 不排序
 
 const orderLength = 3
-
-var CLASS_ASC = 'order-by-asc'
-var CLASS_DESC = 'order-by-desc'
 
 const { indexOf } = Array.prototype
 
