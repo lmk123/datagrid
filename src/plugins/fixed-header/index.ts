@@ -35,13 +35,15 @@ export default function<T extends DataGridConstructor>(Base: T) {
       if (!this.parent) {
         const { scrollContainer } = ui
         this.unbindEvents.push(
-          addEvent(
-            window,
-            'resize',
-            rafThrottle(() => {
-              this.syncFixedHeader()
-            })
-          ),
+          // 窗口大小变化后重新同步表格的宽度
+          // TODO: 窗口大小变化后表格的宽度似乎没有变化？
+          // addEvent(
+          //   window,
+          //   'resize',
+          //   rafThrottle(() => {
+          //     this.syncFixedHeader()
+          //   })
+          // ),
           // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
           addEvent(
             scrollContainer,

@@ -1,0 +1,12 @@
+.datagrid .asc,
+.datagrid .desc {
+  display: none;
+}
+
+.datagrid .sort-by-1 .asc {
+  display: inline-block;
+}
+
+.datagrid .sort-by-2 .desc {
+  display: inline-block;
+}

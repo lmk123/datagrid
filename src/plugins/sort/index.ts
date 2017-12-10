@@ -2,6 +2,7 @@
 import * as t from 'tinyemitter'
 import * as g from '../../core/index'
 
+import './style.css'
 import { DataGridConstructor, Column } from '../../core/index'
 import addEvent from '../../utils/add-event'
 import closest from '../../utils/closest'
@@ -14,6 +15,29 @@ const orderLength = 3
 
 const { indexOf } = Array.prototype
 
+export type SortBlockFn = () => Node
+export type SortBlock = string | SortBlockFn
+
+function defaultSortBlock() {
+  const fd = document.createDocumentFragment()
+  ;[
+    {
+      className: 'asc',
+      innerHTML: '&#8593;'
+    },
+    {
+      className: 'desc',
+      innerHTML: '&#8595;'
+    }
+  ].forEach(element => {
+    const span = document.createElement('span')
+    Object.assign(span, element)
+    fd.appendChild(span)
+  })
+
+  return fd
+}
+
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
     private sortColumnIndex: number
@@ -22,14 +46,23 @@ export default function<T extends DataGridConstructor>(Base: T) {
     constructor(...args: any[]) {
       super(...args)
 
+      const sortBlock = this.options.sortBlock || defaultSortBlock
+      const appendSortBlock =
+        typeof sortBlock === 'string'
+          ? (th: HTMLElement) => {
+              th.innerHTML += sortBlock
+            }
+          : (th: HTMLElement) => {
+              th.appendChild(sortBlock())
+            }
+
       this.on(
         'after th render',
         (th: HTMLTableHeaderCellElement, column: Column, index: number) => {
           if (index === this.sortColumnIndex && this.sortOrderIndex) {
             th.classList.add('sort-by-' + this.sortOrderIndex)
           }
-          // XXX: 用 appendChild()
-          th.innerHTML += '<span><span>上</span><span>下</span></span>'
+          appendSortBlock(th)
         }
       )
       if (!this.parent) {

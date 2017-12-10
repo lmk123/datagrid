@@ -6,6 +6,7 @@ import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
 import { GridPlace } from '../plugins/fixed-table/index'
+import { SortBlock } from '../plugins/sort/index'
 
 export type DataGridConstructor = new (...args: any[]) => BaseGrid
 
@@ -28,6 +29,8 @@ export interface DataGridOptions {
     rowIndex: number
   ) => string | Node
   parent?: BaseGrid
+  sortBlock?: SortBlock
+  [other: string]: any
 }
 
 export interface InnerDataGridOptions extends DataGridOptions {
