@@ -23,13 +23,11 @@ const { some, forEach, indexOf } = Array.prototype
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
     private lastHoverIndex: number
-    private readonly fixedTables: FixedGrids = {}
     private readonly fixedTableEvents: (() => void)[] = []
 
     constructor(...args: any[]) {
       super(...args)
       const { scrollContainer } = this.ui
-      const { fixedTables } = this
       if (!this.parent) {
         this.fixedTableEvents.push(
           // 同步表格的滚动条位置
@@ -37,6 +35,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
             scrollContainer,
             'scroll',
             rafThrottle(() => {
+              const { fixedTables } = this
+              if (!fixedTables) return
               for (let place in fixedTables) {
                 fixedTables[place as GridPlace]!.ui.table.style[
                   // @ts-ignore
@@ -81,7 +81,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
      * @param place 固定表格的位置，默认为左侧。
      */
     setFixed(count: number, place: GridPlace = 'left') {
-      let fixedTable = this.fixedTables[place]
+      const { fixedTables } = this
+      let fixedTable = fixedTables && fixedTables[place]
       if (!count) {
         if (fixedTable) {
           fixedTable.el.style.display = 'none'
@@ -109,7 +110,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
      * @param place 要同步宽度的表格的位置。
      */
     syncFixedWidth(place: GridPlace) {
-      const fixedTable = this.fixedTables[place]
+      const { fixedTables } = this
+      const fixedTable = fixedTables && fixedTables[place]
       if (!fixedTable) return
       const fixed = fixedTable.fixedColumns
       // 同步 table 和 th 的宽度
@@ -132,12 +134,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       fixedTable.el.style.width = `${width}px`
       fixedTable.ui.colgroup.innerHTML = colHtml
       // 同步表头的高度
-      const theadTr = fixedTable.ui.thead.firstElementChild as
-        | HTMLTableRowElement
-        | undefined
-      if (theadTr) {
-        theadTr.style.height = this.ui.thead.clientHeight + 'px'
-      }
+      fixedTable.ui.theadRow.style.height = this.ui.theadRow.clientHeight + 'px'
       // 同步 tr 的高度
       const trs = fixedTable.ui.tbody.children
       forEach.call(
@@ -163,9 +160,10 @@ export default function<T extends DataGridConstructor>(Base: T) {
         )
       )
       innerTable.fixedPlace = place
+      // TODO: 将代码里的 children 都换成 fixedTables
       ;(this.children || (this.children = [])).push(innerTable)
+      ;(this.fixedTables || (this.fixedTables = {}))[place] = innerTable
       innerTable.el.classList.add('fixed-grid', 'fixed-grid-' + place)
-      this.fixedTables[place] = innerTable
       const { ui } = innerTable
       const colgroup = (ui.colgroup = document.createElement('colgroup'))
       ui.table.appendChild(colgroup)

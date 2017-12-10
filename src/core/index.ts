@@ -5,7 +5,7 @@
 import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
-import { GridPlace } from '../plugins/fixed-table/index'
+import { GridPlace, FixedGrids } from '../plugins/fixed-table/index'
 import { SortBlock } from '../plugins/sort/index'
 
 export type DataGridConstructor = new (...args: any[]) => BaseGrid
@@ -72,9 +72,10 @@ export default class BaseGrid extends TinyEmitter {
   readonly el = document.createElement('div')
   /* protected */ readonly ui: { [prop: string]: HTMLElement } = {}
   protected options: InnerDataGridOptions
-  protected curData: TableData
+  curData: TableData
   /** 如果当前实例用了 fixedTable 插件，则会有这个属性 */
   protected children?: BaseGrid[]
+  protected fixedTables?: FixedGrids
   // 下面的这些属性都只在由 fixedTable 插件内部创建的表格实例上存在
   /** 如果当前实例是 fixedTable 创建的内部表格则会有这个属性 */
   /* protected */ readonly parent?: BaseGrid

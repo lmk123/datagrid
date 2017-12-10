@@ -11,6 +11,7 @@ import './style.css'
 export default function<T extends DataGridConstructor>(Base: T) {
   return class FixedHeader extends Base {
     private fixedTHead = document.createElement('thead')
+    private fixedTheadRow = document.createElement('tr')
     private readonly fixedHeaderTable = document.createElement('table')
     private readonly colGroup = document.createElement('colgroup')
     private readonly unbindEvents: (() => void)[] = []
@@ -25,9 +26,12 @@ export default function<T extends DataGridConstructor>(Base: T) {
       fixedHeaderWrapper.className = 'fixed-header'
       // 创建一个仅包含 thead 的表格作为固定表头
       // 使用 colgroup 保持原本的表格与固定表头的单元格宽度一致
-      const { fixedHeaderTable, colGroup } = this
+      const { fixedHeaderTable, colGroup, fixedTHead, fixedTheadRow } = this
+      ui.fixedThead = fixedTHead
+      ui.fixedTheadRow = fixedTheadRow
       fixedHeaderTable.appendChild(colGroup)
-      fixedHeaderTable.appendChild(this.fixedTHead)
+      fixedTHead.appendChild(fixedTheadRow)
+      fixedHeaderTable.appendChild(fixedTHead)
       fixedHeaderWrapper.appendChild(fixedHeaderTable)
 
       el.appendChild(fixedHeaderWrapper)
@@ -62,27 +66,25 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
     /** 同步表头中单元格的宽度。 */
     syncFixedHeader() {
+      const { table, theadRow } = this.ui
       this.colGroup.innerHTML = Array.prototype.reduce.call(
-        this.ui.theadRow.children,
+        theadRow.children,
         (result: string, th: HTMLTableHeaderCellElement) => {
           return (result += `<col width="${th.clientWidth}">`)
         },
         ''
       )
 
-      this.fixedHeaderTable.style.width = this.ui.table.clientWidth + 'px'
+      this.fixedHeaderTable.style.width = table.clientWidth + 'px'
 
       // 同步表头的高度
-      const tr = this.fixedTHead.firstElementChild as HTMLTableRowElement | undefined
-      if (tr) {
-        tr.style.height = this.ui.thead.clientHeight + 'px'
-      }
+      this.fixedTheadRow.style.height = theadRow.clientHeight + 'px'
     }
 
     /** 重载 setData 方法，在渲染完表格后同步表头的内容。 */
     setData(data: TableData) {
       super.setData(data)
-      this.fixedTHead.innerHTML = this.ui.thead.innerHTML
+      this.fixedTheadRow.innerHTML = this.ui.theadRow.innerHTML
       // 需要等到 fixedTable 中的 syncFixedWidth 更新完之后再同步宽度，
       // 不然会出现 header 宽度不一致的问题
       raf(() => {

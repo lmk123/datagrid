@@ -1,6 +1,6 @@
 // https://github.com/Microsoft/TypeScript/issues/5711
 import * as t from 'tinyemitter'
-import * as g from '../../core/index'
+import BaseGrid, * as g from '../../core/index'
 
 import './style.css'
 import { DataGridConstructor, Column } from '../../core/index'
@@ -75,15 +75,21 @@ export default function<T extends DataGridConstructor>(Base: T) {
           const ths = (th.parentElement as HTMLTableSectionElement).children
           const thIndex = indexOf.call(ths, th)
 
-          let newOrderIndex
+          let newSortColumnIndex: number
+          const isRightFixed = closest.call(th, '.fixed-grid-right')
+          if (isRightFixed) {
+            newSortColumnIndex =
+              this.curData.columns.length -
+              (this.fixedTables!.right!.fixedColumns! - thIndex)
+          } else {
+            newSortColumnIndex = thIndex
+          }
+
+          let newOrderIndex: number
+          const oldOrderIndex = this.sortOrderIndex
           const oldSortColumnIndex = this.sortColumnIndex
-          // TODO: 先在原本的表格上排序，然后点击了左侧或右侧固定表格的排序时会报错
-          if (oldSortColumnIndex !== thIndex) {
-            const oldSortTh = ths[oldSortColumnIndex]
-            if (oldSortTh) {
-              oldSortTh.classList.remove('sort-by-1', 'sort-by-2')
-            }
-            this.sortColumnIndex = thIndex
+          if (oldSortColumnIndex !== newSortColumnIndex) {
+            this.sortColumnIndex = newSortColumnIndex
             newOrderIndex = 1
           } else {
             newOrderIndex = this.sortOrderIndex + 1
@@ -92,10 +98,41 @@ export default function<T extends DataGridConstructor>(Base: T) {
             }
           }
           this.sortOrderIndex = newOrderIndex
-          th.classList.remove('sort-by-1', 'sort-by-2')
-          if (newOrderIndex) {
-            th.classList.add('sort-by-' + newOrderIndex)
+
+          const setSort = (grid: BaseGrid) => {
+            const columnIndex2trIndex = (columnIndex: number) => {
+              return grid.fixedPlace === 'right'
+                ? grid.fixedColumns! -
+                    (this.curData.columns.length - columnIndex)
+                : columnIndex
+            }
+            const ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children
+            if (oldOrderIndex) {
+              const oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)]
+              if (oldTh) {
+                oldTh.classList.remove('sort-by-' + oldOrderIndex)
+              }
+            }
+            if (newOrderIndex) {
+              const newTh = ths[columnIndex2trIndex(newSortColumnIndex)]
+              console.log(
+                grid.fixedPlace === 'right'
+                  ? grid.fixedColumns! -
+                    (this.curData.columns.length - newSortColumnIndex)
+                  : newSortColumnIndex
+              )
+              if (newTh) {
+                newTh.classList.add('sort-by-' + newOrderIndex)
+              }
+            }
           }
+
+          setSort(this)
+          const { children } = this
+          if (children) {
+            children.forEach(setSort)
+          }
+
           this.emit('sort', thIndex, newOrderIndex)
         })
       }
