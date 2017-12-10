@@ -5,6 +5,7 @@
 import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
+import { GridPlace } from '../plugins/fixed-table/index'
 
 export type DataGridConstructor = new (...args: any[]) => BaseGrid
 
@@ -26,13 +27,6 @@ export interface DataGridOptions {
     columnIndex: number,
     rowIndex: number
   ) => string | Node
-  /**
-   * fixedTable 插件会在生成固定表格时使用当前构造函数创建表格实例挂在左右两侧，
-   * 创建时会传入父表格实例；反过来说，若这个属性存在，
-   * 则说明当前的表格实例其实是 fixedTable 插件创建的内部表格，
-   * 其他插件可能会据此执行不同的逻辑。
-   */
-  parent?: BaseGrid
 }
 
 export interface InnerDataGridOptions extends DataGridOptions {
@@ -72,10 +66,15 @@ export default class BaseGrid extends TinyEmitter {
   readonly el = document.createElement('div')
   readonly ui: { [prop: string]: HTMLElement } = {}
   protected curData: TableData
-  /** 如果当前实例是 fixedTable 创建的内部表格则会有这个属性 */
-  protected readonly parent?: BaseGrid
   /** 如果当前实例用了 fixedTable 插件，则会有这个属性 */
   protected children?: BaseGrid[]
+  // 下面的这些属性都只在由 fixedTable 插件内部创建的表格实例上存在
+  /** 如果当前实例是 fixedTable 创建的内部表格则会有这个属性 */
+  parent?: BaseGrid
+  /** 这个固定表格当前固定的列的个数 */
+  fixedColumns?: number
+  /** 这个固定表格的位置 */
+  fixedPlace?: GridPlace
 
   constructor(options: DataGridOptions = {}) {
     super()
@@ -86,10 +85,6 @@ export default class BaseGrid extends TinyEmitter {
       },
       options
     ))
-    const { parent } = realOptions
-    if (parent) {
-      this.parent = parent
-    }
     const { el } = this
     el.className = 'datagrid'
     el.innerHTML = template

@@ -22,8 +22,6 @@ const { some, forEach } = Array.prototype
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
     private readonly fixedTables: FixedGrids = {}
-    private leftFixed: number
-    private rightFixed: number
 
     constructor(...args: any[]) {
       super(...args)
@@ -60,7 +58,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
         fixedTable = this.createFixedGrid(place)
       }
       const { curData } = this
-      this[(place + 'Fixed') as 'leftFixed' | 'rightFixed'] = count
+      fixedTable.fixedColumns = count
       fixedTable.setData({
         columns:
           place === 'left'
@@ -79,7 +77,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
     syncFixedWidth(place: GridPlace) {
       const fixedTable = this.fixedTables[place]
       if (!fixedTable) return
-      const fixed = this[(place + 'Fixed') as 'leftFixed' | 'rightFixed']
+      const fixed = fixedTable.fixedColumns
       // 同步 table 和 th 的宽度
       let colHtml = ''
       let width = 0
@@ -115,13 +113,9 @@ export default function<T extends DataGridConstructor>(Base: T) {
      * @param place 表格的位置
      */
     private createFixedGrid(place: GridPlace) {
-      const { options } = this
-      const innerTable = new (this.constructor as typeof BaseGrid)({
-        // XXX: 使用 copy 复制原对象
-        td: options.td,
-        th: options.th,
-        parent: this
-      })
+      const innerTable = new (this.constructor as typeof BaseGrid)(this.options)
+      innerTable.parent = this
+      innerTable.fixedPlace = place
       ;(this.children || (this.children = [])).push(innerTable)
       innerTable.el.classList.add('fixed-grid', 'fixed-grid-' + place)
       this.fixedTables[place] = innerTable
