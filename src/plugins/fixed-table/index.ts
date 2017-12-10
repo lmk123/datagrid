@@ -115,7 +115,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       // 同步 table 和 th 的宽度
       let colHtml = ''
       let width = 0
-      const ths = this.ui.thead.children
+      const ths = this.ui.theadRow.children
       const thsLength = ths.length - 1
 
       const getTh =
@@ -131,6 +131,13 @@ export default function<T extends DataGridConstructor>(Base: T) {
       })
       fixedTable.el.style.width = `${width}px`
       fixedTable.ui.colgroup.innerHTML = colHtml
+      // 同步表头的高度
+      const theadTr = fixedTable.ui.thead.firstElementChild as
+        | HTMLTableRowElement
+        | undefined
+      if (theadTr) {
+        theadTr.style.height = this.ui.thead.clientHeight + 'px'
+      }
       // 同步 tr 的高度
       const trs = fixedTable.ui.tbody.children
       forEach.call(

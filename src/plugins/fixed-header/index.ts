@@ -32,41 +32,36 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
       el.appendChild(fixedHeaderWrapper)
 
-      const { scrollContainer } = ui
-      this.unbindEvents.push(
-        addEvent(
-          window,
-          'resize',
-          rafThrottle(() => {
-            this.syncFixedHeader()
-          })
-        ),
-        // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
-        addEvent(
-          scrollContainer,
-          'scroll',
-          rafThrottle(() => {
-            // 使用 transform 会比同步 scrollLeft 流畅很多
-            fixedHeaderTable.style[
-              // @ts-ignore
-              getCSSProperty('transform')
-            ] = `translate3d(-${scrollContainer.scrollLeft}px,0,0)`
-          })
+      if (!this.parent) {
+        const { scrollContainer } = ui
+        this.unbindEvents.push(
+          addEvent(
+            window,
+            'resize',
+            rafThrottle(() => {
+              this.syncFixedHeader()
+            })
+          ),
+          // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
+          addEvent(
+            scrollContainer,
+            'scroll',
+            rafThrottle(() => {
+              // 使用 transform 会比同步 scrollLeft 流畅很多
+              fixedHeaderTable.style[
+                // @ts-ignore
+                getCSSProperty('transform')
+              ] = `translate3d(-${scrollContainer.scrollLeft}px,0,0)`
+            })
+          )
         )
-      )
+      }
     }
 
-    /**
-     * 同步表头中单元格的宽度。
-     * FIXME: 还应该同步表头的高度。
-     * 目前默认是从 this.ui.thead 同步的，
-     * 但是 fixedTable 应该从父表格的 thead 同步而不是从它自身的 thead 同步，
-     * 否则高度就不一致，所以还应该加一个参数用于指定同步来源表头，
-     * 默认为自身的 this.ui.thead。
-     */
+    /** 同步表头中单元格的宽度。 */
     syncFixedHeader() {
       this.colGroup.innerHTML = Array.prototype.reduce.call(
-        this.ui.thead.children,
+        this.ui.theadRow.children,
         (result: string, th: HTMLTableHeaderCellElement) => {
           return (result += `<col width="${th.clientWidth}">`)
         },
@@ -74,6 +69,12 @@ export default function<T extends DataGridConstructor>(Base: T) {
       )
 
       this.fixedHeaderTable.style.width = this.ui.table.clientWidth + 'px'
+
+      // 同步表头的高度
+      const tr = this.fixedTHead.firstElementChild as HTMLTableRowElement | undefined
+      if (tr) {
+        tr.style.height = this.ui.thead.clientHeight + 'px'
+      }
     }
 
     /** 重载 setData 方法，在渲染完表格后同步表头的内容。 */

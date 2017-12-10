@@ -93,10 +93,12 @@ export default class BaseGrid extends TinyEmitter {
     const { el } = this
     el.className = 'datagrid'
     el.innerHTML = template
+    const thead = el.getElementsByTagName('thead')[0]
     Object.assign(this.ui, {
       scrollContainer: el.getElementsByClassName('scroll-container')[0],
       table: el.getElementsByTagName('table')[0],
-      thead: el.getElementsByTagName('thead')[0],
+      thead,
+      theadRow: thead.firstElementChild,
       tbody: el.getElementsByTagName('tbody')[0],
       modal: el.getElementsByClassName('modal-content')[0]
     })
@@ -109,7 +111,7 @@ export default class BaseGrid extends TinyEmitter {
       columns,
       rows
     }
-    const { thead, tbody } = this.ui
+    const { theadRow, tbody } = this.ui
 
     // 首先重新渲染表头
     if (columns.length) {
@@ -124,10 +126,10 @@ export default class BaseGrid extends TinyEmitter {
         this.emit('after th render', th, column, index)
         fragment.appendChild(th)
       })
-      thead.textContent = ''
-      thead.appendChild(fragment)
+      theadRow.textContent = ''
+      theadRow.appendChild(fragment)
     } else {
-      thead.textContent = ''
+      theadRow.textContent = ''
     }
 
     // 然后渲染表格
