@@ -1,5 +1,6 @@
 import DataGrid from '../src/index'
 import data from './data'
+import '../theme.css'
 
 const grid = new DataGrid()
 
