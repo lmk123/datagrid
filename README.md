@@ -97,7 +97,7 @@ const grid = new BaseGrid(options)
 
 内置插件可能会添加其他一些设置项，后面介绍内置插件时会详细说明。
 
-BaseGrid 有且仅有一个公开属性：`el`，一个 div 元素，表示表格的根元素。
+BaseGrid 有且仅有一个公开属性：`el`，一个 div 元素，表示表格的根元素。
 
 BaseGrid 有这些方法：
 
@@ -107,7 +107,7 @@ BaseGrid 有这些方法：
 
 `Column` 目前只有一个属性：`key`，它是表头的内容，同时也是 `Row` 中用于读取对应数据的字段名。
 
-示例：
+示例：
 
 ```js
 grid.setData({
@@ -142,7 +142,7 @@ fixedTable 插件提供了在主表格左右两侧生成固定表格的功能，
 
 fixedTable 没有给 BaseGrid 添加任何设置和属性。
 
-fixedTable 给 BaseGrid 添加了两个方法：
+fixedTable 给 BaseGrid 添加了两个方法：
 
 #### setFixed(count: number, place = 'left')
 
@@ -150,7 +150,7 @@ fixedTable 给 BaseGrid 添加了两个方法：
 
 #### syncFixedWidth(place: 'left' | 'right')
 
-同步左侧或右侧表格的数据、宽度等。调用 `setFixed` 方法时会自动运行这个方法，但如果你在其他情况下改变了主表格的宽度、高度等状态，可以手动调用此方法重新定位固定表格。
+同步左侧或右侧表格的数据、宽度等。调用 `setFixed` 方法时会自动运行这个方法，但如果你在其他情况下改变了主表格的宽度、高度等状态，可以手动调用此方法重新定位固定表格。
 
 ### fixedHeader 插件
 
@@ -158,7 +158,7 @@ fixedHeader 插件将表格的表头固定在了最顶部，不随着表格上�
 
 fixedHeader 没有给 BaseGrid 添加任何设置和属性。
 
-fixedHeader 给 BaseGrid 添加了一个方法：
+fixedHeader 给 BaseGrid 添加了一个方法：
 
 #### syncFixedHeader()
 
