@@ -20,10 +20,10 @@ setTimeout(() => {
       }
     ]
   })
-}, 2000)
+}, 500)
 
 setTimeout(() => {
   grid.setData(data)
   grid.setFixed(3)
   grid.setFixed(1, 'right')
-}, 4000)
+}, 1000)
