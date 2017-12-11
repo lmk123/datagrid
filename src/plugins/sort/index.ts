@@ -62,6 +62,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
           if (index === this.sortColumnIndex && this.sortOrderIndex) {
             th.classList.add('sort-by-' + this.sortOrderIndex)
           }
+          // TODO: 后期增加只针对某些 column 开启排序的功能
+          th.classList.add('sortable')
           appendSortBlock(th)
         }
       )
