@@ -20,6 +20,9 @@
     "build": "node build/build.js",
     "prepublishOnly": "npm run lint && npm run build"
   },
+  "dependencies": {
+    "tinyemitter": "^1.0.1"
+  },
   "devDependencies": {
     "autoprefixer": "^7.2.1",
     "cssnano": "^3.10.0",
@@ -40,8 +43,5 @@
     "typescript": "^2.6.1",
     "uglify-js": "^3.1.10"
   },
-  "license": "MIT",
-  "dependencies": {
-    "tinyemitter": "^1.0.1"
-  }
+  "license": "MIT"
 }
