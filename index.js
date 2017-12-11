@@ -1156,11 +1156,11 @@ setTimeout(function () {
             }
         ]
     });
-}, 2000);
+}, 1000);
 setTimeout(function () {
     grid.setData(data);
     grid.setFixed(3);
     grid.setFixed(1, 'right');
-}, 4000);
+}, 2000);
 
 }());
