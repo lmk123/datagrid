@@ -1,4 +1,4 @@
-// https://github.com/Microsoft/TypeScript/issues/5711
+// https://github.com/Microsoft/TypeScript/issues/9944
 import * as g from '../../core/index'
 import * as t from 'tinyemitter'
 

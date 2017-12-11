@@ -5,8 +5,8 @@
 import TinyEmitter from 'tinyemitter'
 import template from './template.html'
 import './style.css'
-import { GridPlace, FixedGrids } from '../plugins/fixed-table/index'
-import { SortBlock } from '../plugins/sort/index'
+import { GridPlace, FixedGrids } from '../plugins/fixed-table'
+import { SortBlock } from '../plugins/sort'
 
 export type DataGridConstructor = new (...args: any[]) => BaseGrid
 

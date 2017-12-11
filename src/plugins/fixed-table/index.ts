@@ -1,8 +1,8 @@
-// https://github.com/Microsoft/TypeScript/issues/5711
+// https://github.com/Microsoft/TypeScript/issues/9944
 import * as t from 'tinyemitter'
-import * as g from '../../core/index'
+import * as g from '../../core'
 
-import BaseGrid, { DataGridConstructor } from '../../core/index'
+import BaseGrid, { DataGridConstructor } from '../../core'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
 import closest from '../../utils/closest'
@@ -15,8 +15,6 @@ export interface FixedGrids {
 }
 
 export type GridPlace = keyof FixedGrids
-
-// TODO: 同步主表格的 hover 状态
 
 const { some, forEach, indexOf } = Array.prototype
 

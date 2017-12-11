@@ -1,9 +1,10 @@
-// https://github.com/Microsoft/TypeScript/issues/5711
+// https://github.com/Microsoft/TypeScript/issues/9944
 import * as t from 'tinyemitter'
-import BaseGrid, * as g from '../../core/index'
+import * as g from '../../core/index'
+import * as x from '../fixed-table'
 
 import './style.css'
-import { DataGridConstructor, Column } from '../../core/index'
+import BaseGrid, { DataGridConstructor, Column } from '../../core'
 import addEvent from '../../utils/add-event'
 import closest from '../../utils/closest'
 

@@ -1,10 +1,10 @@
-// https://github.com/Microsoft/TypeScript/issues/5711
+// https://github.com/Microsoft/TypeScript/issues/9944
 import * as t from 'tinyemitter'
-import * as g from './core/index'
+import * as g from './core'
 import * as h from './plugins/fixed-header'
 import * as ta from './plugins/fixed-table'
 
-import BaseGrid from './core/index'
+import BaseGrid from './core'
 
 import fixedHeader from './plugins/fixed-header'
 import fixedTable from './plugins/fixed-table'

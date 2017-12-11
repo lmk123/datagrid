@@ -1,8 +1,9 @@
-// https://github.com/Microsoft/TypeScript/issues/5711
+// https://github.com/Microsoft/TypeScript/issues/9944
 import * as t from 'tinyemitter'
-import BaseGrid, * as g from '../../core/index'
+import * as g from '../../core/index'
+import * as x from '../fixed-table'
 
-import { DataGridConstructor } from '../../core/index'
+import BaseGrid, { DataGridConstructor } from '../../core'
 import addEvent from '../../utils/add-event'
 import closest from '../../utils/closest'
 
@@ -28,6 +29,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
           const oldSelectionIndex = this.selectionIndex
           if (oldSelectionIndex !== trIndex) {
             this.selectionIndex = trIndex
+            this.emit('select', trIndex)
 
             const updateSelected = function(grid: BaseGrid) {
               const { children } = grid.ui.tbody

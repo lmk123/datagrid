@@ -1,15 +1,16 @@
-// https://github.com/Microsoft/TypeScript/issues/5711
-import * as g from '../../core/index'
+// https://github.com/Microsoft/TypeScript/issues/9944
+import * as g from '../../core'
 import * as t from 'tinyemitter'
+import * as x from '../fixed-table'
 
-import { DataGridConstructor, TableData } from '../../core/index'
+import { DataGridConstructor, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
 import rafThrottle, { raf } from '../../utils/raf-throttle'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
 export default function<T extends DataGridConstructor>(Base: T) {
-  return class FixedHeader extends Base {
+  return class extends Base {
     private fixedTHead = document.createElement('thead')
     private fixedTheadRow = document.createElement('tr')
     private readonly fixedHeaderTable = document.createElement('table')

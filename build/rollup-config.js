@@ -1,6 +1,6 @@
 const pkg = require('../package.json')
 
-const name = 'Datagrid'
+const name = 'datagrid'
 const banner = [
   '/*!',
   ' * datagrid v' + pkg.version,
