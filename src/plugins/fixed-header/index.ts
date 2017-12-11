@@ -70,15 +70,15 @@ export default function<T extends DataGridConstructor>(Base: T) {
       this.colGroup.innerHTML = Array.prototype.reduce.call(
         theadRow.children,
         (result: string, th: HTMLTableHeaderCellElement) => {
-          return (result += `<col width="${th.clientWidth}">`)
+          return (result += `<col width="${th.offsetWidth}">`)
         },
         ''
       )
 
-      this.fixedHeaderTable.style.width = table.clientWidth + 'px'
+      this.fixedHeaderTable.style.width = table.offsetWidth + 'px'
 
       // 同步表头的高度
-      this.fixedTheadRow.style.height = theadRow.clientHeight + 'px'
+      this.fixedTheadRow.style.height = theadRow.offsetHeight + 'px'
     }
 
     /** 重载 setData 方法，在渲染完表格后同步表头的内容。 */

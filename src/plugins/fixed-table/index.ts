@@ -122,26 +122,28 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
       const getTh =
         place === 'left'
-          ? (index: number) => ths[index]
-          : (index: number) => ths[thsLength - index]
+          ? (index: number) => ths[index] as HTMLElement
+          : (index: number) => ths[thsLength - index] as HTMLElement
 
       some.call(ths, (th: HTMLTableHeaderCellElement, index: number) => {
         if (index === fixed) return true
-        const { clientWidth } = getTh(index)
-        colHtml += `<col width="${clientWidth}">`
-        width += clientWidth
+        const { offsetWidth } = getTh(index)
+        colHtml += `<col width="${offsetWidth}">`
+        width += offsetWidth
       })
-      fixedTable.el.style.width = `${width}px`
+      // 在使用默认主题（给 th 加了右 border）的情况下，
+      // 给容器固定这个宽度可以让固定表格两侧的 border 不显示出来
+      // fixedTable.el.style.width = `${width}px`
       fixedTable.ui.colgroup.innerHTML = colHtml
       // 同步表头的高度
-      fixedTable.ui.theadRow.style.height = this.ui.theadRow.clientHeight + 'px'
+      fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px'
       // 同步 tr 的高度
       const trs = fixedTable.ui.tbody.children
       forEach.call(
         this.ui.tbody.children,
         (tr: HTMLTableRowElement, index: number) => {
           ;(trs[index] as HTMLTableRowElement).style.height =
-            tr.clientHeight + 'px'
+            tr.offsetHeight + 'px'
         }
       )
     }

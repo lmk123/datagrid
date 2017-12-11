@@ -51,7 +51,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
         dragLine.style.height = this.el.offsetHeight + 'px'
         draggingLineInitLeft =
-          th.offsetLeft + th.clientWidth - ui.scrollContainer.scrollLeft
+          th.offsetLeft + th.offsetWidth - ui.scrollContainer.scrollLeft
         dragLine.style.left = draggingLineInitLeft + 1 + 'px'
         document.documentElement.classList.add('data-grid-dragging')
       }
@@ -81,7 +81,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
         if (IS_TOUCH) showDragLine(th!)
 
         // TODO: 避免触发排序
-        minLeft = -(th!.clientWidth - MIN_WIDTH)
+        minLeft = -(th!.offsetWidth - MIN_WIDTH)
         draggingTH = th!
         dragging = true
         startX = getPageX(e)

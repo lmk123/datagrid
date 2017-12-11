@@ -5,9 +5,16 @@
   font-size: 12px;
 }
 
-.datagrid,
-.datagrid * {
-  box-sizing: border-box;
+.fixed-grid {
+  border: none;
+}
+
+.fixed-grid-left {
+  border-right: 1px solid #eee;
+}
+
+.fixed-grid-right {
+  border-left: 1px solid #eee;
 }
 
 .datagrid th,
@@ -25,10 +32,6 @@
 
 .datagrid th:last-child {
   border-right: none;
-}
-
-.fixed-grid th:last-child {
-  border-right: 1px solid #eee;
 }
 
 .datagrid td {
