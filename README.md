@@ -124,11 +124,11 @@ grid.setData({
 })
 ```
 
-### showModal(msg: string = '暂无数据')
+#### showModal(msg: string = '暂无数据')
 
 显示一段消息，默认会显示“暂无数据”，消息中可以包含 HTML 标签。
 
-### hideModal()
+#### hideModal()
 
 隐藏消息。
 
