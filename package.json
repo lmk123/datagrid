@@ -1,6 +1,6 @@
 {
   "name": "datagrid",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "插件式表格组件。",
   "repository": {
     "type": "git",
@@ -12,7 +12,8 @@
   "types": "declaration/index.d.ts",
   "files": [
     "dist",
-    "declaration"
+    "declaration",
+    "theme.css"
   ],
   "scripts": {
     "start": "node build/dev.js",
