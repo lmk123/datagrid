@@ -9,14 +9,14 @@ const banner = [
   ' */'
 ].join('\n')
 
-module.exports = function(isBuild, isModule) {
+module.exports = function(isBuild, isModule, isGhPages) {
   return {
-    inputOptions: getInputOptions(isBuild, isModule),
-    outputOptions: getOutputOptions(isBuild, isModule)
+    inputOptions: getInputOptions(isBuild, isModule, isGhPages),
+    outputOptions: getOutputOptions(isBuild, isModule, isGhPages)
   }
 }
 
-function getInputOptions(isBuild, isModule) {
+function getInputOptions(isBuild, isModule, isGhPages) {
   const plugins = [
     require('rollup-plugin-postcss')({
       plugins: isBuild
@@ -48,22 +48,23 @@ function getInputOptions(isBuild, isModule) {
   plugins.push(
     require('rollup-plugin-typescript2')({
       useTsconfigDeclarationDir: isBuild,
-      tsconfigOverride: isBuild
-        ? {
-            compilerOptions: {
-              declaration: true,
-              declarationDir: 'declaration'
+      tsconfigOverride:
+        isBuild && !isGhPages
+          ? {
+              compilerOptions: {
+                declaration: true,
+                declarationDir: 'declaration'
+              }
             }
-          }
-        : {
-            include: ['src/**/*', 'dev/**/*']
-          }
+          : {
+              include: ['src/**/*', 'dev/**/*']
+            }
     })
   )
 
   if (isBuild) {
     plugins.push(require('rollup-plugin-buble')())
-  } else {
+  } else if (!isGhPages) {
     plugins.push(
       require('rollup-plugin-serve')({
         open: true,
@@ -74,14 +75,14 @@ function getInputOptions(isBuild, isModule) {
   }
 
   return {
-    input: isBuild ? './src/index.ts' : './dev/index.ts',
+    input: isBuild && !isGhPages ? './src/index.ts' : './dev/index.ts',
     external: isModule ? Object.keys(pkg.dependencies) : undefined,
     plugins
   }
 }
 
-function getOutputOptions(isBuild, isModule) {
-  if (!isBuild) {
+function getOutputOptions(isBuild, isModule, isGhPages) {
+  if (!isBuild || isGhPages) {
     return [
       {
         file: './dev/index.js',

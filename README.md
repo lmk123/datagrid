@@ -1,6 +1,6 @@
 # DataGrid
 
-原生 JavaScript 开发的插件式表格组件。
+插件式表格组件。[查看在线示例](https://lmk123.github.io/datagrid/)
 
 ## 安装
 
