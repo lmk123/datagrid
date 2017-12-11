@@ -26,8 +26,14 @@
 .datagrid th {
   position: relative;
   border-right: 1px solid #eee;
-  border-bottom: 1px solid #eee;
   background: #f8f8f8;
+}
+
+/* 在 macOS 和 iOS 的 Safari 中，必须给 tr 而不是 th 设置 border-bottom，
+ * 不然 th 的 border-bottom 会在滚动时离奇消失……
+ */
+.datagrid thead tr {
+  border-bottom: 1px solid #eee;
 }
 
 .datagrid th:last-child {
