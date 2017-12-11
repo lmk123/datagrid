@@ -69,6 +69,7 @@ const fragment = document.createDocumentFragment()
 // @see https://github.com/Microsoft/TypeScript/issues/17744
 
 export default class BaseGrid extends TinyEmitter {
+  /* tslint:disable:member-ordering */
   readonly el = document.createElement('div')
   /* protected */ readonly ui: { [prop: string]: HTMLElement } = {}
   protected options: InnerDataGridOptions
@@ -83,6 +84,7 @@ export default class BaseGrid extends TinyEmitter {
   /* protected */ fixedColumns?: number
   /** 这个固定表格的位置 */
   /* protected */ fixedPlace?: GridPlace
+  /* tslint:disable:member-ordering */
 
   constructor(options: DataGridOptions = {}) {
     super()

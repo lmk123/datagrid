@@ -1,7 +1,9 @@
 // https://github.com/Microsoft/TypeScript/issues/9944
+/* tslint:disable:no-unused-variable */
 import * as t from 'tinyemitter'
 import * as g from '../../core/index'
 import * as x from '../fixed-table'
+/* tslint:enable:no-unused-variable */
 
 import BaseGrid, { DataGridConstructor } from '../../core'
 import addEvent from '../../utils/add-event'

@@ -1,8 +1,11 @@
 // https://github.com/Microsoft/TypeScript/issues/9944
+/* tslint:disable:no-unused-variable */
 import * as g from '../../core'
 import * as t from 'tinyemitter'
 import * as x from '../fixed-table'
+/* tslint:enable:no-unused-variable */
 
+// tslint:disable-next-line:no-duplicate-imports
 import { DataGridConstructor, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
 import rafThrottle, { raf } from '../../utils/raf-throttle'

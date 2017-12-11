@@ -1,15 +1,19 @@
 // https://github.com/Microsoft/TypeScript/issues/9944
+/* tslint:disable:no-unused-variable */
 import * as t from 'tinyemitter'
 import * as g from './core'
 import * as h from './plugins/fixed-header'
 import * as ta from './plugins/fixed-table'
+/* tslint:enable:no-unused-variable */
 
+/* tslint:disable:no-duplicate-imports */
 import BaseGrid from './core'
 
 import fixedHeader from './plugins/fixed-header'
 import fixedTable from './plugins/fixed-table'
 import sort from './plugins/sort'
 import selection from './plugins/selection'
+/* tslint:enable:no-duplicate-imports */
 
 // 默认返回一个功能丰富的表格类。
 // 这里的繁琐写法是为了让 TypeScript 能正确解析类型。

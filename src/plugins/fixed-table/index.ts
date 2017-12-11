@@ -1,7 +1,10 @@
 // https://github.com/Microsoft/TypeScript/issues/9944
+/* tslint:disable:no-unused-variable */
 import * as t from 'tinyemitter'
 import * as g from '../../core'
+/* tslint:enable:no-unused-variable */
 
+// tslint:disable-next-line:no-duplicate-imports
 import BaseGrid, { DataGridConstructor } from '../../core'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
@@ -114,7 +117,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       const fixed = fixedTable.fixedColumns
       // 同步 table 和 th 的宽度
       let colHtml = ''
-      let width = 0
+      // let width = 0
       const ths = this.ui.theadRow.children
       const thsLength = ths.length - 1
 
@@ -127,7 +130,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
         if (index === fixed) return true
         const { offsetWidth } = getTh(index)
         colHtml += `<col width="${offsetWidth}">`
-        width += offsetWidth
+        // width += offsetWidth
       })
       // 在使用默认主题（给 th 加了右 border）的情况下，
       // 给容器固定这个宽度可以让固定表格两侧的 border 不显示出来

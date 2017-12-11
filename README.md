@@ -1,6 +1,6 @@
 # DataGrid
 
-原生 JavaScript 表格组件。
+原生 JavaScript 开发的插件式表格组件。
 
 ## 安装
 
