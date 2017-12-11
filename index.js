@@ -1,4 +1,3 @@
-(function(l, i, v, e) { v = l.createElement(i); v.async = 1; v.src = '//' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; e = l.getElementsByTagName(i)[0]; e.parentNode.insertBefore(v, e)})(document, 'script');
 (function () {
 'use strict';
 
@@ -41,7 +40,7 @@ var TinyEmitter = /** @class */ (function () {
         }
         var events = e[name];
         if (!events)
-            return;
+            { return; }
         var i = events.indexOf(handle);
         if (i >= 0) {
             if (events.length === 1) {
@@ -55,13 +54,15 @@ var TinyEmitter = /** @class */ (function () {
         }
     };
     TinyEmitter.prototype.emit = function (name) {
+        var arguments$1 = arguments;
+
         var args = [];
         for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
+            args[_i - 1] = arguments$1[_i];
         }
         var events = this.e[name];
         if (!events)
-            return;
+            { return; }
         events.forEach(function (handle) {
             handle.apply(null, args);
         });
@@ -69,9 +70,9 @@ var TinyEmitter = /** @class */ (function () {
     return TinyEmitter;
 }());
 
-var template = "<div class=\"scroll-container\">\n  <table>\n    <thead>\n      <tr></tr>\n    </thead>\n    <tbody></tbody>\n  </table>\n</div>\n<div class=\"modal\">\n  <div class=\"modal-content\"></div>\n</div>\n";
+var template = "<div class=scroll-container><table><thead><tr></tr></thead><tbody></tbody></table></div><div class=modal><div class=modal-content></div></div>";
 
-__$styleInject(".datagrid {\n  position: relative;\n}\n\n.datagrid .modal {\n  display: none;\n  justify-content: center;\n  align-items: center;\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: #fff;\n}\n\n.datagrid.show-modal .modal {\n  display: flex;\n}\n\n.datagrid .scroll-container {\n  height: 100%;\n  overflow: scroll;\n}\n\n.datagrid table {\n  min-width: 100%;\n  border-collapse: collapse;\n  border-spacing: 0;\n}\n\n.datagrid td {\n  word-wrap: break-word;\n  word-break: break-all;\n}\n",undefined);
+__$styleInject(".datagrid{position:relative}.datagrid .modal{display:none;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;position:absolute;top:0;left:0;right:0;bottom:0;background-color:#fff}.datagrid.show-modal .modal{display:-webkit-box;display:-ms-flexbox;display:flex}.datagrid .scroll-container{height:100%;overflow:scroll}.datagrid table{min-width:100%;border-collapse:collapse;border-spacing:0}.datagrid td{word-wrap:break-word;word-break:break-all}",undefined);
 
 /**
  * @fileOverview 输出一个最基本的、仅包含核心功能的表格类。
@@ -95,13 +96,14 @@ function fillNode(node, content) {
         node.appendChild(content);
     }
 }
-const fragment = document.createDocumentFragment();
+var fragment = document.createDocumentFragment();
 // 下面的一些 protected 关键字是因为一个 bug 才被注释掉的，
 // @see https://github.com/Microsoft/TypeScript/issues/17744
-class BaseGrid extends TinyEmitter {
-    /* tslint:disable:member-ordering */
-    constructor(options = {}) {
-        super();
+var BaseGrid = (function (TinyEmitter$$1) {
+    function BaseGrid(options) {
+        if ( options === void 0 ) options = {};
+
+        TinyEmitter$$1.call(this);
         /* tslint:disable:member-ordering */
         this.el = document.createElement('div');
         /* protected */ this.ui = {};
@@ -110,38 +112,48 @@ class BaseGrid extends TinyEmitter {
             th: defaultThRenderer
         }, options);
         this.parent = options && options.parent;
-        const { el } = this;
+        var ref = this;
+        var el = ref.el;
         el.className = 'datagrid';
         el.innerHTML = template;
-        const thead = el.getElementsByTagName('thead')[0];
+        var thead = el.getElementsByTagName('thead')[0];
         Object.assign(this.ui, {
             scrollContainer: el.getElementsByClassName('scroll-container')[0],
             table: el.getElementsByTagName('table')[0],
-            thead,
+            thead: thead,
             theadRow: thead.firstElementChild,
             tbody: el.getElementsByTagName('tbody')[0],
             modal: el.getElementsByClassName('modal-content')[0]
         });
     }
+
+    if ( TinyEmitter$$1 ) BaseGrid.__proto__ = TinyEmitter$$1;
+    BaseGrid.prototype = Object.create( TinyEmitter$$1 && TinyEmitter$$1.prototype );
+    BaseGrid.prototype.constructor = BaseGrid;
     /** 根据数据生成表格内容。 */
-    setData(data) {
-        const { columns = [], rows = [] } = data;
+    BaseGrid.prototype.setData = function setData (data) {
+        var this$1 = this;
+
+        var columns = data.columns; if ( columns === void 0 ) columns = [];
+        var rows = data.rows; if ( rows === void 0 ) rows = [];
         this.curData = {
-            columns,
-            rows
+            columns: columns,
+            rows: rows
         };
-        const { theadRow, tbody } = this.ui;
+        var ref = this.ui;
+        var theadRow = ref.theadRow;
+        var tbody = ref.tbody;
         // 首先重新渲染表头
         if (columns.length) {
-            columns.forEach((column, index) => {
+            columns.forEach(function (column, index) {
                 if (typeof column === 'string') {
                     column = {
                         key: column
                     };
                 }
-                const th = document.createElement('th');
-                fillNode(th, this.options.th(column, index));
-                this.emit('after th render', th, column, index);
+                var th = document.createElement('th');
+                fillNode(th, this$1.options.th(column, index));
+                this$1.emit('after th render', th, column, index);
                 fragment.appendChild(th);
             });
             theadRow.textContent = '';
@@ -152,17 +164,17 @@ class BaseGrid extends TinyEmitter {
         }
         // 然后渲染表格
         if (rows.length) {
-            rows.forEach((row, rowIndex) => {
-                const tr = document.createElement('tr');
-                columns.forEach((column, columnIndex) => {
+            rows.forEach(function (row, rowIndex) {
+                var tr = document.createElement('tr');
+                columns.forEach(function (column, columnIndex) {
                     if (typeof column === 'string') {
                         column = {
                             key: column
                         };
                     }
-                    const td = document.createElement('td');
-                    fillNode(td, this.options.td(column, row, columnIndex, rowIndex));
-                    this.emit('after td render', td, column, row, rowIndex, columnIndex);
+                    var td = document.createElement('td');
+                    fillNode(td, this$1.options.td(column, row, columnIndex, rowIndex));
+                    this$1.emit('after td render', td, column, row, rowIndex, columnIndex);
                     tr.appendChild(td);
                 });
                 fragment.appendChild(tr);
@@ -175,30 +187,35 @@ class BaseGrid extends TinyEmitter {
             tbody.textContent = '';
             this.showModal();
         }
-    }
+    };
     /** 显示一段消息。默认会显示“暂无数据” */
-    showModal(html = '暂无数据') {
+    BaseGrid.prototype.showModal = function showModal (html) {
+        if ( html === void 0 ) html = '暂无数据';
+
         this.ui.modal.innerHTML = html;
         this.el.classList.add('show-modal');
-    }
+    };
     /** 隐藏消息。 */
-    hideModal() {
+    BaseGrid.prototype.hideModal = function hideModal () {
         this.el.classList.remove('show-modal');
-    }
+    };
     /**
      * 销毁对象。
      * @param remove 如果为 true，则从 DOM 中删除元素。
      */
-    destroy(remove) {
+    BaseGrid.prototype.destroy = function destroy (remove) {
         if (remove) {
-            const { el } = this;
-            const { parentElement } = el;
+            var ref = this;
+            var el = ref.el;
+            var parentElement = el.parentElement;
             if (parentElement) {
                 parentElement.removeChild(el);
             }
         }
-    }
-}
+    };
+
+    return BaseGrid;
+}(TinyEmitter));
 
 /**
  * 在事件目标上注册一个事件，并返回取消事件的函数。
@@ -208,13 +225,13 @@ class BaseGrid extends TinyEmitter {
  */
 var addEvent = function (target, event, handler) {
     target.addEventListener(event, handler);
-    return () => {
+    return function () {
         target.removeEventListener(event, handler);
     };
 };
 
 // https://caniuse.com/#feat=requestanimationframe
-const raf = window.requestAnimationFrame ||
+var raf = window.requestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
     // @ts-ignore
     window.mozRequestAnimationFrame ||
@@ -227,11 +244,14 @@ const raf = window.requestAnimationFrame ||
  * @see https://css-tricks.com/debouncing-throttling-explained-examples/#article-header-id-7
  */
 var rafThrottle = function (cb) {
-    let running = false;
-    return function (...args) {
+    var running = false;
+    return function () {
+        var args = [], len = arguments.length;
+        while ( len-- ) args[ len ] = arguments[ len ];
+
         if (!running) {
             running = true;
-            raf(() => {
+            raf(function () {
                 cb.apply(null, args);
                 running = false;
             });
@@ -248,26 +268,32 @@ function generate(args) {
  * @param fn 执行计算的函数
  * @param generateKey 根据函数参数计算唯一的缓存键的函数
  */
-var memory = function (fn, generateKey = generate) {
-    const caches = {};
-    return function (...args) {
-        const cacheKey = generateKey(args);
+var memory = function (fn, generateKey) {
+    if ( generateKey === void 0 ) generateKey = generate;
+
+    var caches = {};
+    return function () {
+        var args = [], len = arguments.length;
+        while ( len-- ) args[ len ] = arguments[ len ];
+
+        var cacheKey = generateKey(args);
         return caches[cacheKey] || (caches[cacheKey] = fn.apply(null, args));
     };
 };
 
-const { style: style$1 } = document.createElement('div');
-let vd;
+var ref = document.createElement('div');
+var style$1 = ref.style;
+var vd;
 /**
  * 获取一个 CSS 属性在当前浏览器中可用的名字。
  * @param property 属性的标准名称。
  */
-var getCSSProperty = memory((property) => {
+var getCSSProperty = memory(function (property) {
     if (property in style$1)
-        return property;
-    const camelCase = property[0].toUpperCase() + property.slice(1);
-    const getVendorProperty = (vendor) => {
-        const vendorProperty = (vendor + camelCase);
+        { return property; }
+    var camelCase = property[0].toUpperCase() + property.slice(1);
+    var getVendorProperty = function (vendor) {
+        var vendorProperty = (vendor + camelCase);
         if (vendorProperty in style$1) {
             return vendorProperty;
         }
@@ -275,9 +301,9 @@ var getCSSProperty = memory((property) => {
     if (vd) {
         return getVendorProperty(vd);
     }
-    let result;
-    ['webkit', 'ms', 'moz', 'o'].some(vendor => {
-        const vendorProperty = getVendorProperty(vendor);
+    var result;
+    ['webkit', 'ms', 'moz', 'o'].some(function (vendor) {
+        var vendorProperty = getVendorProperty(vendor);
         if (vendorProperty) {
             result = vendorProperty;
             vd = vendor;
@@ -288,25 +314,34 @@ var getCSSProperty = memory((property) => {
     return result;
 });
 
-__$styleInject(".datagrid .fixed-header {\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  background-color: #fff;\n  overflow: hidden;\n}\n",undefined);
+__$styleInject(".datagrid .fixed-header{position:absolute;top:0;left:0;right:0;background-color:#fff;overflow:hidden}",undefined);
 
 var fixedHeader = function (Base) {
-    return class extends Base {
-        constructor(...args) {
-            super(...args);
+    return (function (Base) {
+        function anonymous() {
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            Base.apply(this, args);
             this.fixedTHead = document.createElement('thead');
             this.fixedTheadRow = document.createElement('tr');
             this.fixedHeaderTable = document.createElement('table');
             this.colGroup = document.createElement('colgroup');
             this.unbindEvents = [];
-            const { el, ui } = this;
+            var ref = this;
+            var el = ref.el;
+            var ui = ref.ui;
             ui.thead.style.visibility = 'hidden';
             // 创建一个包含表头的 div，通过 CSS 固定在滚动区域上方
-            const fixedHeaderWrapper = document.createElement('div');
+            var fixedHeaderWrapper = document.createElement('div');
             fixedHeaderWrapper.className = 'fixed-header';
             // 创建一个仅包含 thead 的表格作为固定表头
             // 使用 colgroup 保持原本的表格与固定表头的单元格宽度一致
-            const { fixedHeaderTable, colGroup, fixedTHead, fixedTheadRow } = this;
+            var ref$1 = this;
+            var fixedHeaderTable = ref$1.fixedHeaderTable;
+            var colGroup = ref$1.colGroup;
+            var fixedTHead = ref$1.fixedTHead;
+            var fixedTheadRow = ref$1.fixedTheadRow;
             ui.fixedThead = fixedTHead;
             ui.fixedTheadRow = fixedTheadRow;
             fixedHeaderTable.appendChild(colGroup);
@@ -315,7 +350,7 @@ var fixedHeader = function (Base) {
             fixedHeaderWrapper.appendChild(fixedHeaderTable);
             el.appendChild(fixedHeaderWrapper);
             if (!this.parent) {
-                const { scrollContainer } = ui;
+                var scrollContainer = ui.scrollContainer;
                 this.unbindEvents.push(
                 // 窗口大小变化后重新同步表格的宽度
                 // TODO: 窗口大小变化后表格的宽度似乎没有变化？
@@ -327,115 +362,146 @@ var fixedHeader = function (Base) {
                 //   })
                 // ),
                 // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
-                addEvent(scrollContainer, 'scroll', rafThrottle(() => {
+                addEvent(scrollContainer, 'scroll', rafThrottle(function () {
                     // 使用 transform 会比同步 scrollLeft 流畅很多
                     fixedHeaderTable.style[
                     // @ts-ignore
-                    getCSSProperty('transform')] = `translate3d(-${scrollContainer.scrollLeft}px,0,0)`;
+                    getCSSProperty('transform')] = "translate3d(-" + (scrollContainer.scrollLeft) + "px,0,0)";
                 })));
             }
         }
+
+        if ( Base ) anonymous.__proto__ = Base;
+        anonymous.prototype = Object.create( Base && Base.prototype );
+        anonymous.prototype.constructor = anonymous;
         /** 同步表头中单元格的宽度。 */
-        syncFixedHeader() {
-            const { table, theadRow } = this.ui;
-            this.colGroup.innerHTML = Array.prototype.reduce.call(theadRow.children, (result, th) => {
-                return (result += `<col width="${th.offsetWidth}">`);
+        anonymous.prototype.syncFixedHeader = function syncFixedHeader () {
+            var ref = this.ui;
+            var table = ref.table;
+            var theadRow = ref.theadRow;
+            this.colGroup.innerHTML = Array.prototype.reduce.call(theadRow.children, function (result, th) {
+                return (result += "<col width=\"" + (th.offsetWidth) + "\">");
             }, '');
             this.fixedHeaderTable.style.width = table.offsetWidth + 'px';
             // 同步表头的高度
             this.fixedTheadRow.style.height = theadRow.offsetHeight + 'px';
-        }
+        };
         /** 重载 setData 方法，在渲染完表格后同步表头的内容。 */
-        setData(data) {
-            super.setData(data);
+        anonymous.prototype.setData = function setData (data) {
+            var this$1 = this;
+
+            Base.prototype.setData.call(this, data);
             this.fixedTheadRow.innerHTML = this.ui.theadRow.innerHTML;
             // 需要等到 fixedTable 中的 syncFixedWidth 更新完之后再同步宽度，
             // 不然会出现 header 宽度不一致的问题
-            raf(() => {
-                this.syncFixedHeader();
+            raf(function () {
+                this$1.syncFixedHeader();
             });
-        }
-        destroy(...args) {
-            this.unbindEvents.forEach(unbind => unbind());
-            super.destroy(...args);
-        }
-    };
+        };
+        anonymous.prototype.destroy = function destroy () {
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            this.unbindEvents.forEach(function (unbind) { return unbind(); });
+            Base.prototype.destroy.apply(this, args);
+        };
+
+        return anonymous;
+    }(Base));
 };
 
-const { prototype } = Element;
+var prototype = Element.prototype;
 // https://caniuse.com/#feat=matchesselector
-const matches = prototype.matches ||
+var matches = prototype.matches ||
     prototype.webkitMatchesSelector ||
     prototype.msMatchesSelector;
 // https://caniuse.com/#feat=element-closest
 var closest = prototype.closest ||
     function (s) {
-        let el = this;
+        var el = this;
         do {
             if (matches.call(el, s))
-                return el;
+                { return el; }
             el = el.parentElement;
         } while (el);
         return null;
     };
 
-__$styleInject(".fixed-grid {\n  position: absolute;\n  top: 0;\n  background: #fff;\n}\n\n.fixed-grid .scroll-container {\n  /* 故意让固定表格无法滚动 */\n  overflow: hidden;\n}\n\n.fixed-grid-left {\n  left: 0;\n}\n\n.fixed-grid-right {\n  right: 0;\n}\n",undefined);
+__$styleInject(".fixed-grid{position:absolute;top:0;background:#fff}.fixed-grid .scroll-container{overflow:hidden}.fixed-grid-left{left:0}.fixed-grid-right{right:0}",undefined);
 
-const { some, forEach, indexOf } = Array.prototype;
+var ref$1 = Array.prototype;
+var some = ref$1.some;
+var forEach = ref$1.forEach;
+var indexOf = ref$1.indexOf;
 var fixedTable = function (Base) {
-    return class extends Base {
-        constructor(...args) {
-            super(...args);
+    return (function (Base) {
+        function anonymous() {
+            var this$1 = this;
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            Base.apply(this, args);
             this.fixedTableEvents = [];
-            const { scrollContainer } = this.ui;
+            var ref = this.ui;
+            var scrollContainer = ref.scrollContainer;
             if (!this.parent) {
                 this.fixedTableEvents.push(
                 // 同步表格的滚动条位置
-                addEvent(scrollContainer, 'scroll', rafThrottle(() => {
-                    const { fixedTables } = this;
+                addEvent(scrollContainer, 'scroll', rafThrottle(function () {
+                    var ref = this$1;
+                    var fixedTables = ref.fixedTables;
                     if (!fixedTables)
-                        return;
-                    for (let place in fixedTables) {
+                        { return; }
+                    for (var place in fixedTables) {
                         fixedTables[place].ui.table.style[
                         // @ts-ignore
-                        getCSSProperty('transform')] = `translate3d(0,-${scrollContainer.scrollTop}px,0)`;
+                        getCSSProperty('transform')] = "translate3d(0,-" + (scrollContainer.scrollTop) + "px,0)";
                     }
                 })), 
                 // 同步表格的 hover 状态
-                addEvent(this.el, 'mouseover', e => {
-                    const tr = closest.call(e.target, '.datagrid tbody tr');
+                addEvent(this.el, 'mouseover', function (e) {
+                    var tr = closest.call(e.target, '.datagrid tbody tr');
                     if (!tr)
-                        return;
-                    const trs = tr.parentElement.children;
-                    const { lastHoverIndex } = this;
-                    const index = indexOf.call(trs, tr);
+                        { return; }
+                    var trs = tr.parentElement.children;
+                    var ref = this$1;
+                    var lastHoverIndex = ref.lastHoverIndex;
+                    var index = indexOf.call(trs, tr);
                     if (lastHoverIndex === index)
-                        return;
-                    this.lastHoverIndex = index;
-                    const setHover = (grid) => {
-                        const trs = grid.ui.tbody.children;
-                        const lastHoverTr = trs[lastHoverIndex];
+                        { return; }
+                    this$1.lastHoverIndex = index;
+                    var setHover = function (grid) {
+                        var trs = grid.ui.tbody.children;
+                        var lastHoverTr = trs[lastHoverIndex];
                         if (lastHoverTr) {
                             lastHoverTr.classList.remove('hover-row');
                         }
                         trs[index].classList.add('hover-row');
                     };
-                    setHover(this);
-                    const { children } = this;
+                    setHover(this$1);
+                    var ref$1 = this$1;
+                    var children = ref$1.children;
                     if (children) {
                         children.forEach(setHover);
                     }
                 }));
             }
         }
+
+        if ( Base ) anonymous.__proto__ = Base;
+        anonymous.prototype = Object.create( Base && Base.prototype );
+        anonymous.prototype.constructor = anonymous;
         /**
          * 创建或更新固定在左侧或右侧的表格。
          * @param count 固定表格的列数。
          * @param place 固定表格的位置，默认为左侧。
          */
-        setFixed(count, place = 'left') {
-            const { fixedTables } = this;
-            let fixedTable = fixedTables && fixedTables[place];
+        anonymous.prototype.setFixed = function setFixed (count, place) {
+            if ( place === void 0 ) place = 'left';
+
+            var ref = this;
+            var fixedTables = ref.fixedTables;
+            var fixedTable = fixedTables && fixedTables[place];
             if (!count) {
                 if (fixedTable) {
                     fixedTable.el.style.display = 'none';
@@ -445,7 +511,8 @@ var fixedTable = function (Base) {
             if (!fixedTable) {
                 fixedTable = this.createFixedGrid(place);
             }
-            const { curData } = this;
+            var ref$1 = this;
+            var curData = ref$1.curData;
             fixedTable.fixedColumns = count;
             fixedTable.setData({
                 columns: place === 'left'
@@ -455,30 +522,32 @@ var fixedTable = function (Base) {
             });
             fixedTable.el.style.display = '';
             this.syncFixedWidth(place);
-        }
+        };
         /**
          * 同步一个固定表格的宽度、高度等状态。
          * @param place 要同步宽度的表格的位置。
          */
-        syncFixedWidth(place) {
-            const { fixedTables } = this;
-            const fixedTable = fixedTables && fixedTables[place];
+        anonymous.prototype.syncFixedWidth = function syncFixedWidth (place) {
+            var ref = this;
+            var fixedTables = ref.fixedTables;
+            var fixedTable = fixedTables && fixedTables[place];
             if (!fixedTable)
-                return;
-            const fixed = fixedTable.fixedColumns;
+                { return; }
+            var fixed = fixedTable.fixedColumns;
             // 同步 table 和 th 的宽度
-            let colHtml = '';
+            var colHtml = '';
             // let width = 0
-            const ths = this.ui.theadRow.children;
-            const thsLength = ths.length - 1;
-            const getTh = place === 'left'
-                ? (index) => ths[index]
-                : (index) => ths[thsLength - index];
-            some.call(ths, (th, index) => {
+            var ths = this.ui.theadRow.children;
+            var thsLength = ths.length - 1;
+            var getTh = place === 'left'
+                ? function (index) { return ths[index]; }
+                : function (index) { return ths[thsLength - index]; };
+            some.call(ths, function (th, index) {
                 if (index === fixed)
-                    return true;
-                const { offsetWidth } = getTh(index);
-                colHtml += `<col width="${offsetWidth}">`;
+                    { return true; }
+                var ref = getTh(index);
+                var offsetWidth = ref.offsetWidth;
+                colHtml += "<col width=\"" + offsetWidth + "\">";
                 // width += offsetWidth
             });
             // 在使用默认主题（给 th 加了右 border）的情况下，
@@ -488,44 +557,47 @@ var fixedTable = function (Base) {
             // 同步表头的高度
             fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px';
             // 同步 tr 的高度
-            const trs = fixedTable.ui.tbody.children;
-            forEach.call(this.ui.tbody.children, (tr, index) => {
+            var trs = fixedTable.ui.tbody.children;
+            forEach.call(this.ui.tbody.children, function (tr, index) {
                 
                 trs[index].style.height =
                     tr.offsetHeight + 'px';
             });
-        }
+        };
         /**
          * 创建固定在两侧的表格实例的方法。
          * @param place 表格的位置
          */
-        createFixedGrid(place) {
-            const innerTable = new this.constructor(Object.assign({
+        anonymous.prototype.createFixedGrid = function createFixedGrid (place) {
+            var innerTable = new this.constructor(Object.assign({
                 parent: this
             }, this.options));
             innerTable.fixedPlace = place;
             (this.children || (this.children = [])).push(innerTable);
             (this.fixedTables || (this.fixedTables = {}))[place] = innerTable;
             innerTable.el.classList.add('fixed-grid', 'fixed-grid-' + place);
-            const { ui } = innerTable;
-            const colgroup = (ui.colgroup = document.createElement('colgroup'));
+            var ui = innerTable.ui;
+            var colgroup = (ui.colgroup = document.createElement('colgroup'));
             ui.table.appendChild(colgroup);
             this.el.appendChild(innerTable.el);
             return innerTable;
-        }
-    };
+        };
+
+        return anonymous;
+    }(Base));
 };
 
-__$styleInject(".datagrid th.sortable {\n  cursor: pointer;\n}\n\n.datagrid .asc,\n.datagrid .desc {\n  display: none;\n}\n\n.datagrid .sort-by-1 .asc {\n  display: inline-block;\n}\n\n.datagrid .sort-by-2 .desc {\n  display: inline-block;\n}\n",undefined);
+__$styleInject(".datagrid th.sortable{cursor:pointer}.datagrid .asc,.datagrid .desc{display:none}.datagrid .sort-by-1 .asc,.datagrid .sort-by-2 .desc{display:inline-block}",undefined);
 
 /* tslint:enable:no-unused-variable */
 // const DESC = -1, // 降序
 //   ASC = 1, // 升序
 //   NONE = 0 // 不排序
-const orderLength = 3;
-const { indexOf: indexOf$1 } = Array.prototype;
+var orderLength = 3;
+var ref$2 = Array.prototype;
+var indexOf$1 = ref$2.indexOf;
 function defaultSortBlock() {
-    const fd = document.createDocumentFragment();
+    var fd = document.createDocumentFragment();
     [
         {
             className: 'asc',
@@ -535,128 +607,146 @@ function defaultSortBlock() {
             className: 'desc',
             innerHTML: '&#8595;'
         }
-    ].forEach(element => {
-        const span = document.createElement('span');
+    ].forEach(function (element) {
+        var span = document.createElement('span');
         Object.assign(span, element);
         fd.appendChild(span);
     });
     return fd;
 }
 var sort = function (Base) {
-    return class extends Base {
-        constructor(...args) {
-            super(...args);
+    return (function (Base) {
+        function anonymous() {
+            var this$1 = this;
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            Base.apply(this, args);
             this.sortOrderIndex = 0;
-            const sortBlock = this.options.sortBlock || defaultSortBlock;
-            const appendSortBlock = typeof sortBlock === 'string'
-                ? (th) => {
+            var sortBlock = this.options.sortBlock || defaultSortBlock;
+            var appendSortBlock = typeof sortBlock === 'string'
+                ? function (th) {
                     th.innerHTML += sortBlock;
                 }
-                : (th) => {
+                : function (th) {
                     th.appendChild(sortBlock());
                 };
-            this.on('after th render', (th, column, index) => {
-                if (index === this.sortColumnIndex && this.sortOrderIndex) {
-                    th.classList.add('sort-by-' + this.sortOrderIndex);
+            this.on('after th render', function (th, column, index) {
+                if (index === this$1.sortColumnIndex && this$1.sortOrderIndex) {
+                    th.classList.add('sort-by-' + this$1.sortOrderIndex);
                 }
                 // TODO: 后期增加只针对某些 column 开启排序的功能
                 th.classList.add('sortable');
                 appendSortBlock(th);
             });
             if (!this.parent) {
-                addEvent(this.el, 'click', e => {
-                    const th = closest.call(e.target, '.datagrid th');
+                addEvent(this.el, 'click', function (e) {
+                    var th = closest.call(e.target, '.datagrid th');
                     if (!th)
-                        return;
-                    const ths = th.parentElement.children;
-                    const thIndex = indexOf$1.call(ths, th);
-                    let newSortColumnIndex;
-                    const isRightFixed = closest.call(th, '.fixed-grid-right');
+                        { return; }
+                    var ths = th.parentElement.children;
+                    var thIndex = indexOf$1.call(ths, th);
+                    var newSortColumnIndex;
+                    var isRightFixed = closest.call(th, '.fixed-grid-right');
                     if (isRightFixed) {
                         newSortColumnIndex =
-                            this.curData.columns.length -
-                                (this.fixedTables.right.fixedColumns - thIndex);
+                            this$1.curData.columns.length -
+                                (this$1.fixedTables.right.fixedColumns - thIndex);
                     }
                     else {
                         newSortColumnIndex = thIndex;
                     }
-                    let newOrderIndex;
-                    const oldOrderIndex = this.sortOrderIndex;
-                    const oldSortColumnIndex = this.sortColumnIndex;
+                    var newOrderIndex;
+                    var oldOrderIndex = this$1.sortOrderIndex;
+                    var oldSortColumnIndex = this$1.sortColumnIndex;
                     if (oldSortColumnIndex !== newSortColumnIndex) {
-                        this.sortColumnIndex = newSortColumnIndex;
+                        this$1.sortColumnIndex = newSortColumnIndex;
                         newOrderIndex = 1;
                     }
                     else {
-                        newOrderIndex = this.sortOrderIndex + 1;
+                        newOrderIndex = this$1.sortOrderIndex + 1;
                         if (newOrderIndex >= orderLength) {
                             newOrderIndex -= orderLength;
                         }
                     }
-                    this.sortOrderIndex = newOrderIndex;
-                    const setSort = (grid) => {
-                        const columnIndex2trIndex = (columnIndex) => {
+                    this$1.sortOrderIndex = newOrderIndex;
+                    var setSort = function (grid) {
+                        var columnIndex2trIndex = function (columnIndex) {
                             return grid.fixedPlace === 'right'
                                 ? grid.fixedColumns -
-                                    (this.curData.columns.length - columnIndex)
+                                    (this$1.curData.columns.length - columnIndex)
                                 : columnIndex;
                         };
-                        const ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children;
+                        var ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children;
                         if (oldOrderIndex) {
-                            const oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)];
+                            var oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)];
                             if (oldTh) {
                                 oldTh.classList.remove('sort-by-' + oldOrderIndex);
                             }
                         }
                         if (newOrderIndex) {
-                            const newTh = ths[columnIndex2trIndex(newSortColumnIndex)];
+                            var newTh = ths[columnIndex2trIndex(newSortColumnIndex)];
                             console.log(grid.fixedPlace === 'right'
                                 ? grid.fixedColumns -
-                                    (this.curData.columns.length - newSortColumnIndex)
+                                    (this$1.curData.columns.length - newSortColumnIndex)
                                 : newSortColumnIndex);
                             if (newTh) {
                                 newTh.classList.add('sort-by-' + newOrderIndex);
                             }
                         }
                     };
-                    setSort(this);
-                    const { children } = this;
+                    setSort(this$1);
+                    var ref = this$1;
+                    var children = ref.children;
                     if (children) {
                         children.forEach(setSort);
                     }
-                    this.emit('sort', thIndex, newOrderIndex);
+                    this$1.emit('sort', thIndex, newOrderIndex);
                 });
             }
         }
-    };
+
+        if ( Base ) anonymous.__proto__ = Base;
+        anonymous.prototype = Object.create( Base && Base.prototype );
+        anonymous.prototype.constructor = anonymous;
+
+        return anonymous;
+    }(Base));
 };
 
-const { indexOf: indexOf$2 } = Array.prototype;
+var ref$3 = Array.prototype;
+var indexOf$2 = ref$3.indexOf;
 var selection = function (Base) {
-    return class extends Base {
-        constructor(...args) {
-            super(...args);
+    return (function (Base) {
+        function anonymous() {
+            var this$1 = this;
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            Base.apply(this, args);
             if (!this.parent) {
-                addEvent(this.el, 'click', e => {
-                    const tr = closest.call(e.target, '.datagrid tbody tr');
+                addEvent(this.el, 'click', function (e) {
+                    var tr = closest.call(e.target, '.datagrid tbody tr');
                     if (!tr)
-                        return;
-                    const trs = tr.parentElement.children;
-                    const trIndex = indexOf$2.call(trs, tr);
-                    const oldSelectionIndex = this.selectionIndex;
+                        { return; }
+                    var trs = tr.parentElement.children;
+                    var trIndex = indexOf$2.call(trs, tr);
+                    var oldSelectionIndex = this$1.selectionIndex;
                     if (oldSelectionIndex !== trIndex) {
-                        this.selectionIndex = trIndex;
-                        this.emit('select', trIndex);
-                        const updateSelected = function (grid) {
-                            const { children } = grid.ui.tbody;
-                            const lastSelectedRow = children[oldSelectionIndex];
+                        this$1.selectionIndex = trIndex;
+                        this$1.emit('select', trIndex);
+                        var updateSelected = function (grid) {
+                            var ref = grid.ui.tbody;
+                            var children = ref.children;
+                            var lastSelectedRow = children[oldSelectionIndex];
                             if (lastSelectedRow) {
                                 lastSelectedRow.classList.remove('selected-row');
                             }
                             children[trIndex].classList.add('selected-row');
                         };
-                        updateSelected(this);
-                        const { children } = this;
+                        updateSelected(this$1);
+                        var ref = this$1;
+                        var children = ref.children;
                         if (children) {
                             children.forEach(updateSelected);
                         }
@@ -664,7 +754,13 @@ var selection = function (Base) {
                 });
             }
         }
-    };
+
+        if ( Base ) anonymous.__proto__ = Base;
+        anonymous.prototype = Object.create( Base && Base.prototype );
+        anonymous.prototype.constructor = anonymous;
+
+        return anonymous;
+    }(Base));
 };
 
 /* tslint:enable:no-unused-variable */
@@ -1042,12 +1138,12 @@ var data = {
     ]
 };
 
-__$styleInject(".datagrid {\n  height: 400px;\n  border: 1px solid #eee;\n  color: #666;\n  font-size: 12px;\n}\n\n.fixed-grid {\n  border: none;\n}\n\n.fixed-grid-left {\n  border-right: 1px solid #eee;\n}\n\n.fixed-grid-right {\n  border-left: 1px solid #eee;\n}\n\n.datagrid th,\n.datagrid td {\n  padding: 8px 15px;\n  white-space: nowrap;\n}\n\n.datagrid th {\n  position: relative;\n  border-right: 1px solid #eee;\n  border-bottom: 1px solid #eee;\n  background: #f8f8f8;\n}\n\n.datagrid th:last-child {\n  border-right: none;\n}\n\n.datagrid td {\n  text-align: center;\n}\n\n.datagrid tbody tr:nth-child(2n) {\n  background: #f9f9f9;\n}\n\n.datagrid tbody tr.hover-row {\n  background: #f3f3f3;\n}\n\n.datagrid tbody tr.selected-row {\n  background: #19d4ae;\n  color: #fff;\n}\n\n.datagrid .asc,\n.datagrid .desc {\n  position: absolute;\n  right: 0;\n}\n",undefined);
+__$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding:8px 15px;white-space:nowrap}.datagrid th{position:relative;border-right:1px solid #eee;border-bottom:1px solid #eee;background:#f8f8f8}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
 
-const grid = new DataGrid();
+var grid = new DataGrid();
 document.body.appendChild(grid.el);
 grid.setData({ rows: [], columns: [] });
-setTimeout(() => {
+setTimeout(function () {
     grid.setData({
         columns: [
             {
@@ -1061,7 +1157,7 @@ setTimeout(() => {
         ]
     });
 }, 2000);
-setTimeout(() => {
+setTimeout(function () {
     grid.setData(data);
     grid.setFixed(3);
     grid.setFixed(1, 'right');
