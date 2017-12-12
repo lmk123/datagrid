@@ -68,17 +68,19 @@ export default function<T extends DataGridConstructor>(Base: T) {
         }
       )
       if (!this.parent) {
-        this.clickEventHandler = addEvent(this.el, 'click', e => {
-          const th = closest.call(
-            e.target,
-            '.datagrid th'
+        const { el } = this
+        this.clickEventHandler = addEvent(el, 'click', e => {
+          const th = closest(
+            e.target as Element,
+            '.datagrid th',
+            el
           ) as HTMLTableHeaderCellElement
           if (!th) return
           const ths = (th.parentElement as HTMLTableSectionElement).children
           const thIndex = indexOf.call(ths, th)
 
           let newSortColumnIndex: number
-          const isRightFixed = closest.call(th, '.fixed-grid-right')
+          const isRightFixed = closest(th, '.fixed-grid-right', el)
           if (isRightFixed) {
             newSortColumnIndex =
               this.curData.columns.length -

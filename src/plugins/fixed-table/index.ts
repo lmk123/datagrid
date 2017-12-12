@@ -30,6 +30,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       super(...args)
       const { scrollContainer } = this.ui
       if (!this.parent) {
+        const { el } = this
         this.fixedTableEvents = [
           // 同步表格的滚动条位置
           addEvent(
@@ -47,10 +48,11 @@ export default function<T extends DataGridConstructor>(Base: T) {
             })
           ),
           // 同步表格的 hover 状态
-          addEvent(this.el, 'mouseover', e => {
-            const tr = closest.call(
-              e.target,
-              '.datagrid tbody tr'
+          addEvent(el, 'mouseover', e => {
+            const tr = closest(
+              e.target as Element,
+              '.datagrid tbody tr',
+              el
             ) as HTMLTableRowElement
             if (!tr) return
             const trs = tr.parentElement!.children

@@ -20,10 +20,12 @@ export default function<T extends DataGridConstructor>(Base: T) {
       super(...args)
 
       if (!this.parent) {
-        this.ch = addEvent(this.el, 'click', e => {
-          const tr = closest.call(
-            e.target,
-            '.datagrid tbody tr'
+        const { el } = this
+        this.ch = addEvent(el, 'click', e => {
+          const tr = closest(
+            e.target as Element,
+            '.datagrid tbody tr',
+            el
           ) as HTMLTableRowElement
           if (!tr) return
 
