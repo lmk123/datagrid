@@ -71,7 +71,7 @@ const fragment = document.createDocumentFragment()
 export default class BaseGrid extends TinyEmitter {
   /* tslint:disable:member-ordering */
   readonly el = document.createElement('div')
-  /* protected */ readonly ui: { [prop: string]: HTMLElement } = {}
+  /* protected */ readonly ui: { [prop: string]: HTMLElement }
   protected options: InnerDataGridOptions
   curData: TableData
   /** 如果当前实例用了 fixedTable 插件，则会有这个属性 */
@@ -88,6 +88,7 @@ export default class BaseGrid extends TinyEmitter {
 
   constructor(options: DataGridOptions = {}) {
     super()
+    // TODO: 添加 Object.assign 的 polyfill
     this.options = Object.assign(
       {
         td: defaultTdRenderer,
@@ -100,14 +101,16 @@ export default class BaseGrid extends TinyEmitter {
     el.className = 'datagrid'
     el.innerHTML = template
     const thead = el.getElementsByTagName('thead')[0]
-    Object.assign(this.ui, {
-      scrollContainer: el.getElementsByClassName('scroll-container')[0],
+    this.ui = {
+      scrollContainer: el.getElementsByClassName(
+        'scroll-container'
+      )[0] as HTMLDivElement,
       table: el.getElementsByTagName('table')[0],
       thead,
-      theadRow: thead.firstElementChild,
+      theadRow: thead.firstElementChild as HTMLTableRowElement,
       tbody: el.getElementsByTagName('tbody')[0],
-      modal: el.getElementsByClassName('modal-content')[0]
-    })
+      modal: el.getElementsByClassName('modal-content')[0] as HTMLDivElement
+    }
   }
 
   /** 根据数据生成表格内容。 */
