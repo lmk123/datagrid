@@ -8,6 +8,7 @@ import * as g from '../../core'
 import BaseGrid, { DataGridConstructor } from '../../core'
 import addEvent from '../../utils/add-event'
 import rafThrottle from '../../utils/raf-throttle'
+import assign from '../../utils/assign'
 import closest from '../../utils/closest'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
@@ -157,7 +158,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
      */
     private createFixedGrid(place: GridPlace) {
       const innerTable = new (this.constructor as typeof BaseGrid)(
-        Object.assign(
+        assign(
           {
             parent: this
           },

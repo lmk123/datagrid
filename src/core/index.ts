@@ -7,6 +7,7 @@ import template from './template.html'
 import './style.css'
 import { GridPlace, FixedGrids } from '../plugins/fixed-table'
 import { SortBlock } from '../plugins/sort'
+import assign from '../utils/assign'
 
 export type DataGridConstructor = new (...args: any[]) => BaseGrid
 
@@ -88,8 +89,7 @@ export default class BaseGrid extends TinyEmitter {
 
   constructor(options: DataGridOptions = {}) {
     super()
-    // TODO: 添加 Object.assign 的 polyfill
-    this.options = Object.assign(
+    this.options = assign(
       {
         td: defaultTdRenderer,
         th: defaultThRenderer

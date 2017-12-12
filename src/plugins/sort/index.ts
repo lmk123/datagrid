@@ -8,6 +8,7 @@ import * as x from '../fixed-table'
 import './style.css'
 import BaseGrid, { DataGridConstructor, Column, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
+import assign from '../../utils/assign'
 import closest from '../../utils/closest'
 
 const orderLength = 3
@@ -30,7 +31,7 @@ function defaultSortBlock() {
     }
   ].forEach(element => {
     const span = document.createElement('span')
-    Object.assign(span, element)
+    assign(span, element)
     fd.appendChild(span)
   })
 
