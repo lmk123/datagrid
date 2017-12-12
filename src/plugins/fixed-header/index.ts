@@ -18,7 +18,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
     private fixedTheadRow = document.createElement('tr')
     private readonly fixedHeaderTable = document.createElement('table')
     private readonly colGroup = document.createElement('colgroup')
-    private readonly unbindEvents: (() => void)[] = []
+    private readonly unbindEvents?: Function[]
 
     constructor(...args: any[]) {
       super(...args)
@@ -42,7 +42,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
       if (!this.parent) {
         const { scrollContainer } = ui
-        this.unbindEvents.push(
+        this.unbindEvents = [
           // 窗口大小变化后重新同步表格的宽度
           // TODO: 窗口大小变化后表格的宽度似乎没有变化？
           // addEvent(
@@ -64,7 +64,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
               ] = `translate3d(-${scrollContainer.scrollLeft}px,0,0)`
             })
           )
-        )
+        ]
       }
     }
 
@@ -97,7 +97,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
     }
 
     destroy(...args: any[]) {
-      this.unbindEvents.forEach(unbind => unbind())
+      const { unbindEvents } = this
+      if (unbindEvents) unbindEvents.forEach(unbind => unbind())
       super.destroy(...args)
     }
   }

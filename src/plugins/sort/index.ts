@@ -1,18 +1,14 @@
 // https://github.com/Microsoft/TypeScript/issues/9944
 /* tslint:disable:no-unused-variable */
 import * as t from 'tinyemitter'
-import * as g from '../../core/index'
+import * as g from '../../core'
 import * as x from '../fixed-table'
 /* tslint:enable:no-unused-variable */
 
 import './style.css'
-import BaseGrid, { DataGridConstructor, Column } from '../../core'
+import BaseGrid, { DataGridConstructor, Column, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
 import closest from '../../utils/closest'
-
-// const DESC = -1, // 降序
-//   ASC = 1, // 升序
-//   NONE = 0 // 不排序
 
 const orderLength = 3
 
@@ -45,6 +41,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
     private sortColumnIndex: number
     private sortOrderIndex = 0
+    private clickEventHandler?: Function
 
     constructor(...args: any[]) {
       super(...args)
@@ -71,7 +68,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
         }
       )
       if (!this.parent) {
-        addEvent(this.el, 'click', e => {
+        this.clickEventHandler = addEvent(this.el, 'click', e => {
           const th = closest.call(
             e.target,
             '.datagrid th'
@@ -141,6 +138,12 @@ export default function<T extends DataGridConstructor>(Base: T) {
           this.emit('sort', thIndex, newOrderIndex)
         })
       }
+    }
+
+    destroy(...args: any[]) {
+      const { clickEventHandler } = this
+      if (clickEventHandler) clickEventHandler()
+      super.destroy(...args)
     }
   }
 }

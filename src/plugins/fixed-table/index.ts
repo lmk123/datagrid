@@ -24,13 +24,13 @@ const { some, forEach, indexOf } = Array.prototype
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
     private lastHoverIndex: number
-    private readonly fixedTableEvents: (() => void)[] = []
+    private readonly fixedTableEvents?: Function[]
 
     constructor(...args: any[]) {
       super(...args)
       const { scrollContainer } = this.ui
       if (!this.parent) {
-        this.fixedTableEvents.push(
+        this.fixedTableEvents = [
           // 同步表格的滚动条位置
           addEvent(
             scrollContainer,
@@ -72,7 +72,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
               children.forEach(setHover)
             }
           })
-        )
+        ]
       }
     }
 
@@ -172,6 +172,12 @@ export default function<T extends DataGridConstructor>(Base: T) {
       ui.table.appendChild(colgroup)
       this.el.appendChild(innerTable.el)
       return innerTable
+    }
+
+    destroy(...args: any[]) {
+      const { fixedTableEvents } = this
+      if (fixedTableEvents) fixedTableEvents.forEach(fn => fn())
+      super.destroy(...args)
     }
   }
 }

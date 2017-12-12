@@ -14,12 +14,13 @@ const { indexOf } = Array.prototype
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
     private selectionIndex: number
+    private ch?: Function
 
     constructor(...args: any[]) {
       super(...args)
 
       if (!this.parent) {
-        addEvent(this.el, 'click', e => {
+        this.ch = addEvent(this.el, 'click', e => {
           const tr = closest.call(
             e.target,
             '.datagrid tbody tr'
@@ -50,6 +51,12 @@ export default function<T extends DataGridConstructor>(Base: T) {
           }
         })
       }
+    }
+
+    destroy(...args: any[]) {
+      const { ch } = this
+      if (ch) ch()
+      super.destroy(...args)
     }
   }
 }
