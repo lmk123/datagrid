@@ -7,7 +7,6 @@ import * as g from '../../core'
 // tslint:disable-next-line:no-duplicate-imports
 import BaseGrid, { DataGridConstructor } from '../../core'
 import addEvent from '../../utils/add-event'
-import rafThrottle from '../../utils/raf-throttle'
 import assign from '../../utils/assign'
 import closest from '../../utils/closest'
 import getCSSProperty from '../../utils/get-css-property'
@@ -34,20 +33,16 @@ export default function<T extends DataGridConstructor>(Base: T) {
         const { el } = this
         this.fixedTableEvents = [
           // 同步表格的滚动条位置
-          addEvent(
-            scrollContainer,
-            'scroll',
-            rafThrottle(() => {
-              const { fixedTables } = this
-              if (!fixedTables) return
-              for (let place in fixedTables) {
-                fixedTables[place as GridPlace]!.ui.table.style[
-                  // @ts-ignore
-                  getCSSProperty('transform')
-                ] = `translate3d(0,-${scrollContainer.scrollTop}px,0)`
-              }
-            })
-          ),
+          addEvent(scrollContainer, 'scroll', () => {
+            const { fixedTables } = this
+            if (!fixedTables) return
+            for (let place in fixedTables) {
+              fixedTables[place as GridPlace]!.ui.table.style[
+                // @ts-ignore
+                getCSSProperty('transform')
+              ] = `translate3d(0,-${scrollContainer.scrollTop}px,0)`
+            }
+          }),
           // 同步表格的 hover 状态
           addEvent(el, 'mouseover', e => {
             const tr = closest(

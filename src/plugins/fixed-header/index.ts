@@ -8,7 +8,7 @@ import * as x from '../fixed-table'
 // tslint:disable-next-line:no-duplicate-imports
 import { DataGridConstructor, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
-import rafThrottle, { raf } from '../../utils/raf-throttle'
+import { raf } from '../../utils/raf-throttle'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
@@ -53,17 +53,13 @@ export default function<T extends DataGridConstructor>(Base: T) {
           //   })
           // ),
           // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
-          addEvent(
-            scrollContainer,
-            'scroll',
-            rafThrottle(() => {
-              // 使用 transform 会比同步 scrollLeft 流畅很多
-              fixedHeaderTable.style[
-                // @ts-ignore
-                getCSSProperty('transform')
-              ] = `translate3d(-${scrollContainer.scrollLeft}px,0,0)`
-            })
-          )
+          addEvent(scrollContainer, 'scroll', () => {
+            // 使用 transform 会比同步 scrollLeft 流畅很多
+            fixedHeaderTable.style[
+              // @ts-ignore
+              getCSSProperty('transform')
+            ] = `translate3d(-${scrollContainer.scrollLeft}px,0,0)`
+          })
         ]
       }
     }
