@@ -151,6 +151,11 @@ export default function<T extends DataGridConstructor>(Base: T) {
         }
       )
     }
+    destroy(...args: any[]) {
+      const { fixedTableEvents } = this
+      if (fixedTableEvents) fixedTableEvents.forEach(fn => fn())
+      super.destroy(...args)
+    }
 
     /**
      * 创建固定在两侧的表格实例的方法。
@@ -175,12 +180,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
       ui.table.appendChild(colgroup)
       this.el.appendChild(innerTable.el)
       return innerTable
-    }
-
-    destroy(...args: any[]) {
-      const { fixedTableEvents } = this
-      if (fixedTableEvents) fixedTableEvents.forEach(fn => fn())
-      super.destroy(...args)
     }
   }
 }

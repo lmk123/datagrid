@@ -6,7 +6,8 @@ import * as x from '../fixed-table'
 /* tslint:enable:no-unused-variable */
 
 import './style.css'
-import BaseGrid, { DataGridConstructor, Column, TableData } from '../../core'
+// tslint:disable-next-line:no-duplicate-imports
+import BaseGrid, { DataGridConstructor, Column } from '../../core'
 import addEvent from '../../utils/add-event'
 import assign from '../../utils/assign'
 import closest from '../../utils/closest'
