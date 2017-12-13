@@ -166,7 +166,17 @@ fixedHeader 给 BaseGrid 添加了一个方法：
 
 ### selection 插件
 
-让表格行可以被单选。selection 插件没有给 BaseGrid 添加任何设置、属性和方法，但当用户选中了一行数据时，会触发 BaseGrid 的 `select` 事件，参数是选中行的索引号。
+让表格行可以被单选。
+
+selection 插件没有给 BaseGrid 添加任何设置、属性。
+
+selection 插件给 BaseGrid 添加了一个方法：
+
+#### setSelected(index: number)
+
+将指定行设为选中状态。注意：调用这一方法不会触发下面的 `select` 事件。
+
+当用户选中了一行数据时，会触发 BaseGrid 的 `select` 事件，参数是选中行的索引号。
 
 示例：
 
