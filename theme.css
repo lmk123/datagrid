@@ -3,6 +3,8 @@
   border: 1px solid #eee;
   color: #666;
   font-size: 12px;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 .fixed-grid {
