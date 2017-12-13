@@ -257,26 +257,6 @@ var raf = window.requestAnimationFrame ||
     function (cb) {
         setTimeout(cb, 1000 / 60);
     };
-/**
- * 返回一个基于 requestAnimationFrame 的节流函数。
- * @param cb 要执行的函数
- * @see https://css-tricks.com/debouncing-throttling-explained-examples/#article-header-id-7
- */
-var rafThrottle = function (cb) {
-    var running = false;
-    return function () {
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
-
-        if (!running) {
-            running = true;
-            raf(function () {
-                cb.apply(null, args);
-                running = false;
-            });
-        }
-    };
-};
 
 /** 默认情况下使用 join 将参数转换成一个字符串作为唯一的缓存键 */
 function generate(args) {
@@ -380,12 +360,12 @@ var fixedHeader = function (Base) {
                     //   })
                     // ),
                     // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
-                    addEvent(scrollContainer, 'scroll', rafThrottle(function () {
+                    addEvent(scrollContainer, 'scroll', function () {
                         // 使用 transform 会比同步 scrollLeft 流畅很多
                         fixedHeaderTable.style[
                         // @ts-ignore
                         getCSSProperty('transform')] = "translate3d(-" + (scrollContainer.scrollLeft) + "px,0,0)";
-                    }))
+                    })
                 ];
             }
         }
@@ -476,7 +456,7 @@ var fixedTable = function (Base) {
                 var el = ref$1.el;
                 this.fixedTableEvents = [
                     // 同步表格的滚动条位置
-                    addEvent(scrollContainer, 'scroll', rafThrottle(function () {
+                    addEvent(scrollContainer, 'scroll', function () {
                         var ref = this$1;
                         var fixedTables = ref.fixedTables;
                         if (!fixedTables)
@@ -486,7 +466,7 @@ var fixedTable = function (Base) {
                             // @ts-ignore
                             getCSSProperty('transform')] = "translate3d(0,-" + (scrollContainer.scrollTop) + "px,0)";
                         }
-                    })),
+                    }),
                     // 同步表格的 hover 状态
                     addEvent(el, 'mouseover', function (e) {
                         var tr = closest(e.target, '.datagrid tbody tr', el);
@@ -782,25 +762,8 @@ var selection = function (Base) {
                         { return; }
                     var trs = tr.parentElement.children;
                     var trIndex = indexOf$2.call(trs, tr);
-                    var oldSelectionIndex = this$1.selectionIndex;
-                    if (oldSelectionIndex !== trIndex) {
-                        this$1.selectionIndex = trIndex;
+                    if (this$1.setSelected(indexOf$2.call(trs, tr))) {
                         this$1.emit('select', trIndex);
-                        var updateSelected = function (grid) {
-                            var ref = grid.ui.tbody;
-                            var children = ref.children;
-                            var lastSelectedRow = children[oldSelectionIndex];
-                            if (lastSelectedRow) {
-                                lastSelectedRow.classList.remove('selected-row');
-                            }
-                            children[trIndex].classList.add('selected-row');
-                        };
-                        updateSelected(this$1);
-                        var ref = this$1;
-                        var children = ref.children;
-                        if (children) {
-                            children.forEach(updateSelected);
-                        }
                     }
                 });
             }
@@ -809,6 +772,33 @@ var selection = function (Base) {
         if ( Base ) anonymous.__proto__ = Base;
         anonymous.prototype = Object.create( Base && Base.prototype );
         anonymous.prototype.constructor = anonymous;
+        /**
+         * 设置选中行。
+         * @param index 新的选中行的索引
+         * @returns 如果索引号与目前的选中索引号相同，则返回 false，否则返回 true。
+         */
+        anonymous.prototype.setSelected = function setSelected (index) {
+            var oldSelectionIndex = this.selectionIndex;
+            if (oldSelectionIndex === index)
+                { return false; }
+            this.selectionIndex = index;
+            var updateSelected = function (grid) {
+                var ref = grid.ui.tbody;
+                var children = ref.children;
+                var lastSelectedRow = children[oldSelectionIndex];
+                if (lastSelectedRow) {
+                    lastSelectedRow.classList.remove('selected-row');
+                }
+                children[index].classList.add('selected-row');
+            };
+            updateSelected(this);
+            var ref = this;
+            var children = ref.children;
+            if (children) {
+                children.forEach(updateSelected);
+            }
+            return true;
+        };
         anonymous.prototype.destroy = function destroy () {
             var args = [], len = arguments.length;
             while ( len-- ) args[ len ] = arguments[ len ];
@@ -1202,6 +1192,8 @@ var data = {
 __$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding:8px 15px;white-space:nowrap}.datagrid th{position:relative;border-right:1px solid #eee;background:#f8f8f8}.datagrid thead tr{border-bottom:1px solid #eee}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
 
 var grid = new DataGrid();
+// @ts-ignore
+window._grid = grid;
 document.body.appendChild(grid.el);
 grid.setData({ rows: [], columns: [] });
 setTimeout(function () {
