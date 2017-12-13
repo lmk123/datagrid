@@ -31,28 +31,38 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
           const trs = tr.parentElement!.children
           const trIndex = indexOf.call(trs, tr) as number
-          const oldSelectionIndex = this.selectionIndex
-          if (oldSelectionIndex !== trIndex) {
-            this.selectionIndex = trIndex
+          if (this.setSelected(indexOf.call(trs, tr) as number)) {
             this.emit('select', trIndex)
-
-            const updateSelected = function(grid: BaseGrid) {
-              const { children } = grid.ui.tbody
-              const lastSelectedRow = children[oldSelectionIndex]
-              if (lastSelectedRow) {
-                lastSelectedRow.classList.remove('selected-row')
-              }
-              children[trIndex].classList.add('selected-row')
-            }
-
-            updateSelected(this)
-            const { children } = this
-            if (children) {
-              children.forEach(updateSelected)
-            }
           }
         })
       }
+    }
+
+    /**
+     * 设置选中行。
+     * @param index 新的选中行的索引
+     * @returns 如果索引号与目前的选中索引号相同，则返回 false，否则返回 true。
+     */
+    setSelected(index: number) {
+      const oldSelectionIndex = this.selectionIndex
+      if (oldSelectionIndex === index) return false
+      this.selectionIndex = index
+
+      const updateSelected = function(grid: BaseGrid) {
+        const { children } = grid.ui.tbody
+        const lastSelectedRow = children[oldSelectionIndex]
+        if (lastSelectedRow) {
+          lastSelectedRow.classList.remove('selected-row')
+        }
+        children[index].classList.add('selected-row')
+      }
+
+      updateSelected(this)
+      const { children } = this
+      if (children) {
+        children.forEach(updateSelected)
+      }
+      return true
     }
 
     destroy(...args: any[]) {

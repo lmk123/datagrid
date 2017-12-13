@@ -4,6 +4,9 @@ import '../theme.css'
 
 const grid = new DataGrid()
 
+// @ts-ignore
+window._grid = grid
+
 document.body.appendChild(grid.el)
 grid.setData({ rows: [], columns: [] })
 
