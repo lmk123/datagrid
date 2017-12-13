@@ -74,6 +74,26 @@ var template = "<div class=scroll-container><table><thead><tr></tr></thead><tbod
 
 __$styleInject(".datagrid{position:relative}.datagrid .modal{display:none;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;position:absolute;top:0;left:0;right:0;bottom:0;background-color:#fff}.datagrid.show-modal .modal{display:-webkit-box;display:-ms-flexbox;display:flex}.datagrid .scroll-container{height:100%;overflow:scroll}.datagrid table{min-width:100%;border-collapse:collapse;border-spacing:0}.datagrid td{word-wrap:break-word;word-break:break-all}",undefined);
 
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+function forOwn(obj, cb) {
+    for (var key in obj) {
+        if (hasOwnProperty.call(obj, key)) {
+            cb(obj[key], key);
+        }
+    }
+}
+var assign = Object.assign ||
+    function (target) {
+        var args = [], len = arguments.length - 1;
+        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+
+        args.forEach(function (arg) {
+            forOwn(arg, function (val, key) {
+                target[key] = val;
+            });
+        });
+    };
+
 /**
  * @fileOverview 输出一个最基本的、仅包含核心功能的表格类。
  */
@@ -89,11 +109,11 @@ function defaultTdRenderer(column, row) {
  * @param content 内容可以是字符串或者一个节点。如果有多个节点，可以传入一个 Fragment 对象。
  */
 function fillNode(node, content) {
-    if (typeof content === 'string') {
-        node.innerHTML = content;
+    if (content instanceof Node) {
+        node.appendChild(content);
     }
     else {
-        node.appendChild(content);
+        node.innerHTML = content;
     }
 }
 var fragment = document.createDocumentFragment();
@@ -106,8 +126,7 @@ var BaseGrid = (function (TinyEmitter$$1) {
         TinyEmitter$$1.call(this);
         /* tslint:disable:member-ordering */
         this.el = document.createElement('div');
-        /* protected */ this.ui = {};
-        this.options = Object.assign({
+        this.options = assign({
             td: defaultTdRenderer,
             th: defaultThRenderer
         }, options);
@@ -117,14 +136,14 @@ var BaseGrid = (function (TinyEmitter$$1) {
         el.className = 'datagrid';
         el.innerHTML = template;
         var thead = el.getElementsByTagName('thead')[0];
-        Object.assign(this.ui, {
+        this.ui = {
             scrollContainer: el.getElementsByClassName('scroll-container')[0],
             table: el.getElementsByTagName('table')[0],
             thead: thead,
             theadRow: thead.firstElementChild,
             tbody: el.getElementsByTagName('tbody')[0],
             modal: el.getElementsByClassName('modal-content')[0]
-        });
+        };
     }
 
     if ( TinyEmitter$$1 ) BaseGrid.__proto__ = TinyEmitter$$1;
@@ -327,7 +346,6 @@ var fixedHeader = function (Base) {
             this.fixedTheadRow = document.createElement('tr');
             this.fixedHeaderTable = document.createElement('table');
             this.colGroup = document.createElement('colgroup');
-            this.unbindEvents = [];
             var ref = this;
             var el = ref.el;
             var ui = ref.ui;
@@ -351,23 +369,24 @@ var fixedHeader = function (Base) {
             el.appendChild(fixedHeaderWrapper);
             if (!this.parent) {
                 var scrollContainer = ui.scrollContainer;
-                this.unbindEvents.push(
-                // 窗口大小变化后重新同步表格的宽度
-                // TODO: 窗口大小变化后表格的宽度似乎没有变化？
-                // addEvent(
-                //   window,
-                //   'resize',
-                //   rafThrottle(() => {
-                //     this.syncFixedHeader()
-                //   })
-                // ),
-                // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
-                addEvent(scrollContainer, 'scroll', rafThrottle(function () {
-                    // 使用 transform 会比同步 scrollLeft 流畅很多
-                    fixedHeaderTable.style[
-                    // @ts-ignore
-                    getCSSProperty('transform')] = "translate3d(-" + (scrollContainer.scrollLeft) + "px,0,0)";
-                })));
+                this.unbindEvents = [
+                    // 窗口大小变化后重新同步表格的宽度
+                    // TODO: 窗口大小变化后表格的宽度似乎没有变化？
+                    // addEvent(
+                    //   window,
+                    //   'resize',
+                    //   rafThrottle(() => {
+                    //     this.syncFixedHeader()
+                    //   })
+                    // ),
+                    // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
+                    addEvent(scrollContainer, 'scroll', rafThrottle(function () {
+                        // 使用 transform 会比同步 scrollLeft 流畅很多
+                        fixedHeaderTable.style[
+                        // @ts-ignore
+                        getCSSProperty('transform')] = "translate3d(-" + (scrollContainer.scrollLeft) + "px,0,0)";
+                    }))
+                ];
             }
         }
 
@@ -402,7 +421,10 @@ var fixedHeader = function (Base) {
             var args = [], len = arguments.length;
             while ( len-- ) args[ len ] = arguments[ len ];
 
-            this.unbindEvents.forEach(function (unbind) { return unbind(); });
+            var ref = this;
+            var unbindEvents = ref.unbindEvents;
+            if (unbindEvents)
+                { unbindEvents.forEach(function (unbind) { return unbind(); }); }
             Base.prototype.destroy.apply(this, args);
         };
 
@@ -414,18 +436,24 @@ var prototype = Element.prototype;
 // https://caniuse.com/#feat=matchesselector
 var matches = prototype.matches ||
     prototype.webkitMatchesSelector ||
+    // @ts-ignore
+    prototype.mozMatchesSelector ||
     prototype.msMatchesSelector;
 // https://caniuse.com/#feat=element-closest
-var closest = prototype.closest ||
-    function (s) {
-        var el = this;
-        do {
-            if (matches.call(el, s))
-                { return el; }
-            el = el.parentElement;
-        } while (el);
-        return null;
-    };
+var closest = (prototype.closest
+    ? function (target, selector) {
+        return target.closest(selector);
+    }
+    : // 使用 polyfill 方法时加个终点参数避免多余的查找
+        function (target, selector, end) {
+            var el = target;
+            do {
+                if (matches.call(el, selector))
+                    { return el; }
+                el = el.parentElement;
+            } while (el && el !== end);
+            return null;
+        });
 
 __$styleInject(".fixed-grid{position:absolute;top:0;background:#fff}.fixed-grid .scroll-container{overflow:hidden}.fixed-grid-left{left:0}.fixed-grid-right{right:0}",undefined);
 
@@ -441,50 +469,52 @@ var fixedTable = function (Base) {
             while ( len-- ) args[ len ] = arguments[ len ];
 
             Base.apply(this, args);
-            this.fixedTableEvents = [];
             var ref = this.ui;
             var scrollContainer = ref.scrollContainer;
             if (!this.parent) {
-                this.fixedTableEvents.push(
-                // 同步表格的滚动条位置
-                addEvent(scrollContainer, 'scroll', rafThrottle(function () {
-                    var ref = this$1;
-                    var fixedTables = ref.fixedTables;
-                    if (!fixedTables)
-                        { return; }
-                    for (var place in fixedTables) {
-                        fixedTables[place].ui.table.style[
-                        // @ts-ignore
-                        getCSSProperty('transform')] = "translate3d(0,-" + (scrollContainer.scrollTop) + "px,0)";
-                    }
-                })), 
-                // 同步表格的 hover 状态
-                addEvent(this.el, 'mouseover', function (e) {
-                    var tr = closest.call(e.target, '.datagrid tbody tr');
-                    if (!tr)
-                        { return; }
-                    var trs = tr.parentElement.children;
-                    var ref = this$1;
-                    var lastHoverIndex = ref.lastHoverIndex;
-                    var index = indexOf.call(trs, tr);
-                    if (lastHoverIndex === index)
-                        { return; }
-                    this$1.lastHoverIndex = index;
-                    var setHover = function (grid) {
-                        var trs = grid.ui.tbody.children;
-                        var lastHoverTr = trs[lastHoverIndex];
-                        if (lastHoverTr) {
-                            lastHoverTr.classList.remove('hover-row');
+                var ref$1 = this;
+                var el = ref$1.el;
+                this.fixedTableEvents = [
+                    // 同步表格的滚动条位置
+                    addEvent(scrollContainer, 'scroll', rafThrottle(function () {
+                        var ref = this$1;
+                        var fixedTables = ref.fixedTables;
+                        if (!fixedTables)
+                            { return; }
+                        for (var place in fixedTables) {
+                            fixedTables[place].ui.table.style[
+                            // @ts-ignore
+                            getCSSProperty('transform')] = "translate3d(0,-" + (scrollContainer.scrollTop) + "px,0)";
                         }
-                        trs[index].classList.add('hover-row');
-                    };
-                    setHover(this$1);
-                    var ref$1 = this$1;
-                    var children = ref$1.children;
-                    if (children) {
-                        children.forEach(setHover);
-                    }
-                }));
+                    })),
+                    // 同步表格的 hover 状态
+                    addEvent(el, 'mouseover', function (e) {
+                        var tr = closest(e.target, '.datagrid tbody tr', el);
+                        if (!tr)
+                            { return; }
+                        var trs = tr.parentElement.children;
+                        var ref = this$1;
+                        var lastHoverIndex = ref.lastHoverIndex;
+                        var index = indexOf.call(trs, tr);
+                        if (lastHoverIndex === index)
+                            { return; }
+                        this$1.lastHoverIndex = index;
+                        var setHover = function (grid) {
+                            var trs = grid.ui.tbody.children;
+                            var lastHoverTr = trs[lastHoverIndex];
+                            if (lastHoverTr) {
+                                lastHoverTr.classList.remove('hover-row');
+                            }
+                            trs[index].classList.add('hover-row');
+                        };
+                        setHover(this$1);
+                        var ref$1 = this$1;
+                        var children = ref$1.children;
+                        if (children) {
+                            children.forEach(setHover);
+                        }
+                    })
+                ];
             }
         }
 
@@ -564,12 +594,22 @@ var fixedTable = function (Base) {
                     tr.offsetHeight + 'px';
             });
         };
+        anonymous.prototype.destroy = function destroy () {
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            var ref = this;
+            var fixedTableEvents = ref.fixedTableEvents;
+            if (fixedTableEvents)
+                { fixedTableEvents.forEach(function (fn) { return fn(); }); }
+            Base.prototype.destroy.apply(this, args);
+        };
         /**
          * 创建固定在两侧的表格实例的方法。
          * @param place 表格的位置
          */
         anonymous.prototype.createFixedGrid = function createFixedGrid (place) {
-            var innerTable = new this.constructor(Object.assign({
+            var innerTable = new this.constructor(assign({
                 parent: this
             }, this.options));
             innerTable.fixedPlace = place;
@@ -590,9 +630,6 @@ var fixedTable = function (Base) {
 __$styleInject(".datagrid th.sortable{cursor:pointer}.datagrid .asc,.datagrid .desc{display:none}.datagrid .sort-by-1 .asc,.datagrid .sort-by-2 .desc{display:inline-block}",undefined);
 
 /* tslint:enable:no-unused-variable */
-// const DESC = -1, // 降序
-//   ASC = 1, // 升序
-//   NONE = 0 // 不排序
 var orderLength = 3;
 var ref$2 = Array.prototype;
 var indexOf$1 = ref$2.indexOf;
@@ -609,7 +646,7 @@ function defaultSortBlock() {
         }
     ].forEach(function (element) {
         var span = document.createElement('span');
-        Object.assign(span, element);
+        assign(span, element);
         fd.appendChild(span);
     });
     return fd;
@@ -640,14 +677,16 @@ var sort = function (Base) {
                 appendSortBlock(th);
             });
             if (!this.parent) {
-                addEvent(this.el, 'click', function (e) {
-                    var th = closest.call(e.target, '.datagrid th');
+                var ref = this;
+                var el = ref.el;
+                this.clickEventHandler = addEvent(el, 'click', function (e) {
+                    var th = closest(e.target, '.datagrid th', el);
                     if (!th)
                         { return; }
                     var ths = th.parentElement.children;
                     var thIndex = indexOf$1.call(ths, th);
                     var newSortColumnIndex;
-                    var isRightFixed = closest.call(th, '.fixed-grid-right');
+                    var isRightFixed = closest(th, '.fixed-grid-right', el);
                     if (isRightFixed) {
                         newSortColumnIndex =
                             this$1.curData.columns.length -
@@ -709,6 +748,16 @@ var sort = function (Base) {
         if ( Base ) anonymous.__proto__ = Base;
         anonymous.prototype = Object.create( Base && Base.prototype );
         anonymous.prototype.constructor = anonymous;
+        anonymous.prototype.destroy = function destroy () {
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            var ref = this;
+            var clickEventHandler = ref.clickEventHandler;
+            if (clickEventHandler)
+                { clickEventHandler(); }
+            Base.prototype.destroy.apply(this, args);
+        };
 
         return anonymous;
     }(Base));
@@ -725,8 +774,10 @@ var selection = function (Base) {
 
             Base.apply(this, args);
             if (!this.parent) {
-                addEvent(this.el, 'click', function (e) {
-                    var tr = closest.call(e.target, '.datagrid tbody tr');
+                var ref = this;
+                var el = ref.el;
+                this.ch = addEvent(el, 'click', function (e) {
+                    var tr = closest(e.target, '.datagrid tbody tr', el);
                     if (!tr)
                         { return; }
                     var trs = tr.parentElement.children;
@@ -758,6 +809,16 @@ var selection = function (Base) {
         if ( Base ) anonymous.__proto__ = Base;
         anonymous.prototype = Object.create( Base && Base.prototype );
         anonymous.prototype.constructor = anonymous;
+        anonymous.prototype.destroy = function destroy () {
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+            var ref = this;
+            var ch = ref.ch;
+            if (ch)
+                { ch(); }
+            Base.prototype.destroy.apply(this, args);
+        };
 
         return anonymous;
     }(Base));
@@ -801,24 +862,24 @@ var data = {
     rows: [
         {
             一: '二',
-            二: '235',
-            '三三三': '47',
-            '四四四': '112',
-            '五五五五': '444',
-            '六六六六': '016',
-            '七七七七': '501',
+            二: 235,
+            '三三三': 47,
+            '四四四': 112,
+            '五五五五': 444,
+            '六六六六': 16,
+            '七七七七': 51,
             '八八八八八八八': 'longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong',
-            '九九九九九九九九九': '791',
-            '十十十十十十十': '062',
-            '十一': '338',
-            '十二': '856',
-            '十三': '486',
-            '十四': '521',
-            '十五': '219',
-            '十六': '384',
-            '十七': '876',
-            '十八': '2',
-            '十九': '581'
+            '九九九九九九九九九': 791,
+            '十十十十十十十': 62,
+            '十一': 338,
+            '十二': 856,
+            '十三': 486,
+            '十四': 521,
+            '十五': 219,
+            '十六': 384,
+            '十七': 876,
+            '十八': 2,
+            '十九': 581
         },
         {
             一: '0.22%',
@@ -838,307 +899,307 @@ var data = {
             '十五': '0.11%',
             '十六': '0.21%',
             '十七': '0.11%',
-            '十八': '0.00%',
+            '十八': '0.0%',
             '十九': '0.23%'
         },
         {
-            一: '01-02',
-            二: '927',
-            '三三三': '440',
-            '四四四': '304',
-            '五五五五': '197',
-            '六六六六': '961',
-            '七七七七': '398',
-            '八八八八八八八': '913',
-            '九九九九九九九九九': '418',
-            '十十十十十十十': '459',
-            '十一': '746',
-            '十二': '462',
-            '十三': '807',
-            '十四': '656',
-            '十五': '265',
-            '十六': '98',
-            '十七': '71',
-            '十八': '0',
-            '十九': '732'
+            一: '1-2',
+            二: 927,
+            '三三三': 440,
+            '四四四': 34,
+            '五五五五': 197,
+            '六六六六': 961,
+            '七七七七': 398,
+            '八八八八八八八': 913,
+            '九九九九九九九九九': 418,
+            '十十十十十十十': 459,
+            '十一': 746,
+            '十二': 462,
+            '十三': 87,
+            '十四': 656,
+            '十五': 265,
+            '十六': 98,
+            '十七': 71,
+            '十八': 0,
+            '十九': 732
         },
         {
-            一: '01-02',
-            二: '76',
-            '三三三': '542',
-            '四四四': '130',
-            '五五五五': '189',
-            '六六六六': '526',
-            '七七七七': '35',
-            '八八八八八八八': '796',
-            '九九九九九九九九九': '966',
-            '十十十十十十十': '412',
-            '十一': '647',
-            '十二': '958',
-            '十三': '634',
-            '十四': '524',
-            '十五': '193',
-            '十六': '457',
-            '十七': '846',
-            '十八': '0',
-            '十九': '721'
+            一: '1-2',
+            二: 76,
+            '三三三': 542,
+            '四四四': 130,
+            '五五五五': 189,
+            '六六六六': 526,
+            '七七七七': 35,
+            '八八八八八八八': 796,
+            '九九九九九九九九九': 966,
+            '十十十十十十十': 412,
+            '十一': 647,
+            '十二': 958,
+            '十三': 634,
+            '十四': 524,
+            '十五': 193,
+            '十六': 457,
+            '十七': 846,
+            '十八': 0,
+            '十九': 721
         },
         {
-            一: '01-02',
-            二: '161',
-            '三三三': '59',
-            '四四四': '734',
-            '五五五五': '182',
-            '六六六六': '849',
-            '七七七七': '289',
-            '八八八八八八八': '137',
-            '九九九九九九九九九': '910',
-            '十十十十十十十': '519',
-            '十一': '883',
-            '十二': '930',
-            '十三': '874',
-            '十四': '615',
-            '十五': '299',
-            '十六': '477',
-            '十七': '995',
-            '十八': '0',
-            '十九': '409'
+            一: '1-2',
+            二: 161,
+            '三三三': 59,
+            '四四四': 734,
+            '五五五五': 182,
+            '六六六六': 849,
+            '七七七七': 289,
+            '八八八八八八八': 137,
+            '九九九九九九九九九': 910,
+            '十十十十十十十': 519,
+            '十一': 883,
+            '十二': 930,
+            '十三': 874,
+            '十四': 615,
+            '十五': 299,
+            '十六': 477,
+            '十七': 995,
+            '十八': 0,
+            '十九': 49
         },
         {
-            一: '01-02',
-            二: '103',
-            '三三三': '904',
-            '四四四': '588',
-            '五五五五': '182',
-            '六六六六': '941',
-            '七七七七': '962',
-            '八八八八八八八': '070',
-            '九九九九九九九九九': '734',
-            '十十十十十十十': '470',
-            '十一': '806',
-            '十二': '800',
-            '十三': '886',
-            '十四': '643',
-            '十五': '257',
-            '十六': '514',
-            '十七': '929',
-            '十八': '0',
-            '十九': '417'
+            一: '1-2',
+            二: 13,
+            '三三三': 94,
+            '四四四': 588,
+            '五五五五': 182,
+            '六六六六': 941,
+            '七七七七': 962,
+            '八八八八八八八': 70,
+            '九九九九九九九九九': 734,
+            '十十十十十十十': 470,
+            '十一': 86,
+            '十二': 80,
+            '十三': 886,
+            '十四': 643,
+            '十五': 257,
+            '十六': 514,
+            '十七': 929,
+            '十八': 0,
+            '十九': 417
         },
         {
-            一: '01-02',
-            二: '491',
-            '三三三': '451',
-            '四四四': '931',
-            '五五五五': '177',
-            '六六六六': '556',
-            '七七七七': '925',
-            '八八八八八八八': '009',
-            '九九九九九九九九九': '728',
-            '十十十十十十十': '453',
-            '十一': '932',
-            '十二': '796',
-            '十三': '907',
-            '十四': '698',
-            '十五': '227',
-            '十六': '425',
-            '十七': '953',
-            '十八': '0',
-            '十九': '323'
+            一: '1-2',
+            二: 491,
+            '三三三': 451,
+            '四四四': 931,
+            '五五五五': 177,
+            '六六六六': 556,
+            '七七七七': 925,
+            '八八八八八八八': 9,
+            '九九九九九九九九九': 728,
+            '十十十十十十十': 453,
+            '十一': 932,
+            '十二': 796,
+            '十三': 97,
+            '十四': 698,
+            '十五': 227,
+            '十六': 425,
+            '十七': 953,
+            '十八': 0,
+            '十九': 323
         },
         {
-            一: '01-02',
-            二: '882',
-            '三三三': '362',
-            '四四四': '307',
-            '五五五五': '176',
-            '六六六六': '741',
-            '七七七七': '647',
-            '八八八八八八八': '238',
-            '九九九九九九九九九': '189',
-            '十十十十十十十': '450',
-            '十一': '920',
-            '十二': '850',
-            '十三': '738',
-            '十四': '727',
-            '十五': '216',
-            '十六': '388',
-            '十七': '794',
-            '十八': '1',
-            '十九': '138'
+            一: '1-2',
+            二: 882,
+            '三三三': 362,
+            '四四四': 37,
+            '五五五五': 176,
+            '六六六六': 741,
+            '七七七七': 647,
+            '八八八八八八八': 238,
+            '九九九九九九九九九': 189,
+            '十十十十十十十': 450,
+            '十一': 920,
+            '十二': 850,
+            '十三': 738,
+            '十四': 727,
+            '十五': 216,
+            '十六': 388,
+            '十七': 794,
+            '十八': 1,
+            '十九': 138
         },
         {
-            一: '01-02',
-            二: '677',
-            '三三三': '270',
-            '四四四': '168',
-            '五五五五': '163',
-            '六六六六': '708',
-            '七七七七': '456',
-            '八八八八八八八': '188',
-            '九九九九九九九九九': '292',
-            '十十十十十十十': '330',
-            '十一': '823',
-            '十二': '465',
-            '十三': '610',
-            '十四': '626',
-            '十五': '252',
-            '十六': '430',
-            '十七': '740',
-            '十八': '0',
-            '十九': '156'
+            一: '1-2',
+            二: 677,
+            '三三三': 270,
+            '四四四': 168,
+            '五五五五': 163,
+            '六六六六': 78,
+            '七七七七': 456,
+            '八八八八八八八': 188,
+            '九九九九九九九九九': 292,
+            '十十十十十十十': 330,
+            '十一': 823,
+            '十二': 465,
+            '十三': 610,
+            '十四': 626,
+            '十五': 252,
+            '十六': 430,
+            '十七': 740,
+            '十八': 0,
+            '十九': 156
         },
         {
-            一: '01-02',
-            二: '384',
-            '三三三': '524',
-            '四四四': '338',
-            '五五五五': '144',
-            '六六六六': '916',
-            '七七七七': '579',
-            '八八八八八八八': '16',
-            '九九九九九九九九九': '733',
-            '十十十十十十十': '494',
-            '十一': '732',
-            '十二': '718',
-            '十三': '876',
-            '十四': '609',
-            '十五': '280',
-            '十六': '499',
-            '十七': '833',
-            '十八': '0',
-            '十九': '93'
+            一: '1-2',
+            二: 384,
+            '三三三': 524,
+            '四四四': 338,
+            '五五五五': 144,
+            '六六六六': 916,
+            '七七七七': 579,
+            '八八八八八八八': 16,
+            '九九九九九九九九九': 733,
+            '十十十十十十十': 494,
+            '十一': 732,
+            '十二': 718,
+            '十三': 876,
+            '十四': 69,
+            '十五': 280,
+            '十六': 499,
+            '十七': 833,
+            '十八': 0,
+            '十九': 93
         },
         {
-            一: '01-02',
-            二: '628',
-            '三三三': '776',
-            '四四四': '451',
-            '五五五五': '191',
-            '六六六六': '209',
-            '七七七七': '826',
-            '八八八八八八八': '909',
-            '九九九九九九九九九': '830',
-            '十十十十十十十': '990',
-            '十一': '769',
-            '十二': '847',
-            '十三': '913',
-            '十四': '566',
-            '十五': '210',
-            '十六': '309',
-            '十七': '918',
-            '十八': '0',
-            '十九': '914'
+            一: '1-2',
+            二: 628,
+            '三三三': 776,
+            '四四四': 451,
+            '五五五五': 191,
+            '六六六六': 29,
+            '七七七七': 826,
+            '八八八八八八八': 99,
+            '九九九九九九九九九': 830,
+            '十十十十十十十': 990,
+            '十一': 769,
+            '十二': 847,
+            '十三': 913,
+            '十四': 566,
+            '十五': 210,
+            '十六': 39,
+            '十七': 918,
+            '十八': 0,
+            '十九': 914
         },
         {
-            一: '01-02',
-            二: '350',
-            '三三三': '870',
-            '四四四': '398',
-            '五五五五': '158',
-            '六六六六': '583',
-            '七七七七': '458',
-            '八八八八八八八': '961',
-            '九九九九九九九九九': '851',
-            '十十十十十十十': '559',
-            '十一': '761',
-            '十二': '875',
-            '十三': '987',
-            '十四': '637',
-            '十五': '202',
-            '十六': '360',
-            '十七': '816',
-            '十八': '0',
-            '十九': '874'
+            一: '1-2',
+            二: 350,
+            '三三三': 870,
+            '四四四': 398,
+            '五五五五': 158,
+            '六六六六': 583,
+            '七七七七': 458,
+            '八八八八八八八': 961,
+            '九九九九九九九九九': 851,
+            '十十十十十十十': 559,
+            '十一': 761,
+            '十二': 875,
+            '十三': 987,
+            '十四': 637,
+            '十五': 22,
+            '十六': 360,
+            '十七': 816,
+            '十八': 0,
+            '十九': 874
         },
         {
-            一: '01-02',
-            二: '437',
-            '三三三': '721',
-            '四四四': '53',
-            '五五五五': '175',
-            '六六六六': '404',
-            '七七七七': '41',
-            '八八八八八八八': '885',
-            '九九九九九九九九九': '815',
-            '十十十十十十十': '496',
-            '十一': '959',
-            '十二': '886',
-            '十三': '907',
-            '十四': '598',
-            '十五': '196',
-            '十六': '431',
-            '十七': '829',
-            '十八': '0',
-            '十九': '41'
+            一: '1-2',
+            二: 437,
+            '三三三': 721,
+            '四四四': 53,
+            '五五五五': 175,
+            '六六六六': 44,
+            '七七七七': 41,
+            '八八八八八八八': 885,
+            '九九九九九九九九九': 815,
+            '十十十十十十十': 496,
+            '十一': 959,
+            '十二': 886,
+            '十三': 97,
+            '十四': 598,
+            '十五': 196,
+            '十六': 431,
+            '十七': 829,
+            '十八': 0,
+            '十九': 41
         },
         {
-            一: '01-02',
-            二: '58',
-            '三三三': '756',
-            '四四四': '346',
-            '五五五五': '175',
-            '六六六六': '577',
-            '七七七七': '132',
-            '八八八八八八八': '867',
-            '九九九九九九九九九': '875',
-            '十十十十十十十': '519',
-            '十一': '788',
-            '十二': '939',
-            '十三': '903',
-            '十四': '556',
-            '十五': '230',
-            '十六': '369',
-            '十七': '829',
-            '十八': '0',
-            '十九': '197'
+            一: '1-2',
+            二: 58,
+            '三三三': 756,
+            '四四四': 346,
+            '五五五五': 175,
+            '六六六六': 577,
+            '七七七七': 132,
+            '八八八八八八八': 867,
+            '九九九九九九九九九': 875,
+            '十十十十十十十': 519,
+            '十一': 788,
+            '十二': 939,
+            '十三': 93,
+            '十四': 556,
+            '十五': 230,
+            '十六': 369,
+            '十七': 829,
+            '十八': 0,
+            '十九': 197
         },
         {
-            一: '01-02',
-            二: '138',
-            '三三三': '271',
-            '四四四': '184',
-            '五五五五': '170',
-            '六六六六': '556',
-            '七七七七': '264',
-            '八八八八八八八': '42',
-            '九九九九九九九九九': '930',
-            '十十十十十十十': '503',
-            '十一': '793',
-            '十二': '802',
-            '十三': '752',
-            '十四': '555',
-            '十五': '201',
-            '十六': '345',
-            '十七': '761',
-            '十八': '0',
-            '十九': '9'
+            一: '1-2',
+            二: 138,
+            '三三三': 271,
+            '四四四': 184,
+            '五五五五': 170,
+            '六六六六': 556,
+            '七七七七': 264,
+            '八八八八八八八': 42,
+            '九九九九九九九九九': 930,
+            '十十十十十十十': 53,
+            '十一': 793,
+            '十二': 82,
+            '十三': 752,
+            '十四': 555,
+            '十五': 21,
+            '十六': 345,
+            '十七': 761,
+            '十八': 0,
+            '十九': 9
         },
         {
-            一: '01-02',
-            二: '923',
-            '三三三': '101',
-            '四四四': '180',
-            '五五五五': '165',
-            '六六六六': '489',
-            '七七七七': '989',
-            '八八八八八八八': '968',
-            '九九九九九九九九九': '520',
-            '十十十十十十十': '408',
-            '十一': '779',
-            '十二': '528',
-            '十三': '692',
-            '十四': '511',
-            '十五': '191',
-            '十六': '282',
-            '十七': '562',
-            '十八': '1',
-            '十九': '557'
+            一: '1-2',
+            二: 923,
+            '三三三': 11,
+            '四四四': 180,
+            '五五五五': 165,
+            '六六六六': 489,
+            '七七七七': 989,
+            '八八八八八八八': 968,
+            '九九九九九九九九九': 520,
+            '十十十十十十十': 48,
+            '十一': 779,
+            '十二': 528,
+            '十三': 692,
+            '十四': 511,
+            '十五': 191,
+            '十六': 282,
+            '十七': 562,
+            '十八': 1,
+            '十九': 557
         }
     ]
 };
 
-__$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding:8px 15px;white-space:nowrap}.datagrid th{position:relative;border-right:1px solid #eee;border-bottom:1px solid #eee;background:#f8f8f8}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
+__$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding:8px 15px;white-space:nowrap}.datagrid th{position:relative;border-right:1px solid #eee;background:#f8f8f8}.datagrid thead tr{border-bottom:1px solid #eee}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
 
 var grid = new DataGrid();
 document.body.appendChild(grid.el);
