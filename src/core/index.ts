@@ -57,10 +57,10 @@ function defaultTdRenderer(column: ColumnObj, row: Row) {
  * @param content 内容可以是字符串或者一个节点。如果有多个节点，可以传入一个 Fragment 对象。
  */
 function fillNode(node: HTMLElement, content: string | Node) {
-  if (typeof content === 'string') {
-    node.innerHTML = content
-  } else {
+  if (content instanceof Node) {
     node.appendChild(content)
+  } else {
+    node.innerHTML = content
   }
 }
 
