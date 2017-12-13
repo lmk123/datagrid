@@ -1,4 +1,4 @@
-# DataGrid
+# DataGrid [![NPM Version](https://img.shields.io/npm/v/datagrid.svg?style=flat-square)](https://www.npmjs.com/package/datagrid)
 
 插件式表格组件。[查看在线示例](https://lmk123.github.io/datagrid/)
 
