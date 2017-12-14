@@ -40,7 +40,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
               fixedTables[place as GridPlace]!.ui.table.style[
                 // @ts-ignore
                 getCSSProperty('transform')
-              ] = `translate3d(0,-${scrollContainer.scrollTop}px,0)`
+              ] = `translateY(-${scrollContainer.scrollTop}px)`
             }
           }),
           // 同步表格的 hover 状态

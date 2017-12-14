@@ -58,7 +58,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
             fixedHeaderTable.style[
               // @ts-ignore
               getCSSProperty('transform')
-            ] = `translate3d(-${scrollContainer.scrollLeft}px,0,0)`
+            ] = `translateX(-${scrollContainer.scrollLeft}px)`
           })
         ]
       }

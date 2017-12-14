@@ -6,3 +6,7 @@
   background-color: #fff;
   overflow: hidden;
 }
+
+.datagrid .fixed-header table {
+  will-change: transform;
+}

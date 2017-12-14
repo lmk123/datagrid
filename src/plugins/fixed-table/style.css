@@ -9,6 +9,10 @@
   overflow: hidden;
 }
 
+.fixed-grid table {
+  will-change: transform;
+}
+
 .fixed-grid-left {
   left: 0;
 }
