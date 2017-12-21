@@ -19,7 +19,7 @@ export interface FixedGrids {
 
 export type GridPlace = keyof FixedGrids
 
-const { some, forEach, indexOf } = Array.prototype
+const { some, /* forEach, */ indexOf } = Array.prototype
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
