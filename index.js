@@ -313,7 +313,7 @@ var getCSSProperty = memory(function (property) {
     return result;
 });
 
-__$styleInject(".datagrid .fixed-header{position:absolute;top:0;left:0;right:0;background-color:#fff;overflow:hidden}",undefined);
+__$styleInject(".datagrid .fixed-header{position:absolute;top:0;left:0;right:0;background-color:#fff;overflow:hidden}.datagrid .fixed-header table{will-change:transform}",undefined);
 
 var fixedHeader = function (Base) {
     return (function (Base) {
@@ -364,7 +364,7 @@ var fixedHeader = function (Base) {
                         // 使用 transform 会比同步 scrollLeft 流畅很多
                         fixedHeaderTable.style[
                         // @ts-ignore
-                        getCSSProperty('transform')] = "translate3d(-" + (scrollContainer.scrollLeft) + "px,0,0)";
+                        getCSSProperty('transform')] = "translateX(-" + (scrollContainer.scrollLeft) + "px)";
                     })
                 ];
             }
@@ -435,11 +435,10 @@ var closest = (prototype.closest
             return null;
         });
 
-__$styleInject(".fixed-grid{position:absolute;top:0;background:#fff}.fixed-grid .scroll-container{overflow:hidden}.fixed-grid-left{left:0}.fixed-grid-right{right:0}",undefined);
+__$styleInject(".fixed-grid{position:absolute;top:0;background:#fff}.fixed-grid .scroll-container{overflow:hidden}.fixed-grid table{will-change:transform}.fixed-grid-left{left:0}.fixed-grid-right{right:0}",undefined);
 
 var ref$1 = Array.prototype;
 var some = ref$1.some;
-var forEach = ref$1.forEach;
 var indexOf = ref$1.indexOf;
 var fixedTable = function (Base) {
     return (function (Base) {
@@ -464,7 +463,7 @@ var fixedTable = function (Base) {
                         for (var place in fixedTables) {
                             fixedTables[place].ui.table.style[
                             // @ts-ignore
-                            getCSSProperty('transform')] = "translate3d(0,-" + (scrollContainer.scrollTop) + "px,0)";
+                            getCSSProperty('transform')] = "translateY(-" + (scrollContainer.scrollTop) + "px)";
                         }
                     }),
                     // 同步表格的 hover 状态
@@ -564,15 +563,18 @@ var fixedTable = function (Base) {
             // 给容器固定这个宽度可以让固定表格两侧的 border 不显示出来
             // fixedTable.el.style.width = `${width}px`
             fixedTable.ui.colgroup.innerHTML = colHtml;
+            // 目前的做法是根据表格内容平铺表格，不会导致换行，所以暂时注释掉同步高度的代码
             // 同步表头的高度
-            fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px';
+            // fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px'
             // 同步 tr 的高度
-            var trs = fixedTable.ui.tbody.children;
-            forEach.call(this.ui.tbody.children, function (tr, index) {
-                
-                trs[index].style.height =
-                    tr.offsetHeight + 'px';
-            });
+            // const trs = fixedTable.ui.tbody.children
+            // forEach.call(
+            //   this.ui.tbody.children,
+            //   (tr: HTMLTableRowElement, index: number) => {
+            //     ;(trs[index] as HTMLTableRowElement).style.height =
+            //       tr.offsetHeight + 'px'
+            //   }
+            // )
         };
         anonymous.prototype.destroy = function destroy () {
             var args = [], len = arguments.length;
@@ -789,7 +791,10 @@ var selection = function (Base) {
                 if (lastSelectedRow) {
                     lastSelectedRow.classList.remove('selected-row');
                 }
-                children[index].classList.add('selected-row');
+                var newSelectedRow = children[index];
+                if (newSelectedRow) {
+                    newSelectedRow.classList.add('selected-row');
+                }
             };
             updateSelected(this);
             var ref = this;
@@ -1189,7 +1194,7 @@ var data = {
     ]
 };
 
-__$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding:8px 15px;white-space:nowrap}.datagrid th{position:relative;border-right:1px solid #eee;background:#f8f8f8}.datagrid thead tr{border-bottom:1px solid #eee}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
+__$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding-left:15px;padding-right:15px;white-space:nowrap;height:32px}.datagrid th{position:relative;border-right:1px solid #eee;background:#f8f8f8}.datagrid thead tr{border-bottom:1px solid #eee}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
 
 var grid = new DataGrid();
 // @ts-ignore
