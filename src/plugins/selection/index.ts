@@ -54,7 +54,10 @@ export default function<T extends DataGridConstructor>(Base: T) {
         if (lastSelectedRow) {
           lastSelectedRow.classList.remove('selected-row')
         }
-        children[index].classList.add('selected-row')
+        const newSelectedRow = children[index]
+        if (newSelectedRow) {
+          newSelectedRow.classList.add('selected-row')
+        }
       }
 
       updateSelected(this)
