@@ -21,8 +21,10 @@
 
 .datagrid th,
 .datagrid td {
-  padding: 8px 15px;
+  padding-left: 15px;
+  padding-right: 15px;
   white-space: nowrap;
+  height: 32px;
 }
 
 .datagrid th {
