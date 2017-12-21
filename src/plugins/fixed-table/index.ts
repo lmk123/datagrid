@@ -134,17 +134,19 @@ export default function<T extends DataGridConstructor>(Base: T) {
       // 给容器固定这个宽度可以让固定表格两侧的 border 不显示出来
       // fixedTable.el.style.width = `${width}px`
       fixedTable.ui.colgroup.innerHTML = colHtml
+
+      // 目前的做法是根据表格内容平铺表格，不会导致换行，所以暂时注释掉同步高度的代码
       // 同步表头的高度
-      fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px'
+      // fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px'
       // 同步 tr 的高度
-      const trs = fixedTable.ui.tbody.children
-      forEach.call(
-        this.ui.tbody.children,
-        (tr: HTMLTableRowElement, index: number) => {
-          ;(trs[index] as HTMLTableRowElement).style.height =
-            tr.offsetHeight + 'px'
-        }
-      )
+      // const trs = fixedTable.ui.tbody.children
+      // forEach.call(
+      //   this.ui.tbody.children,
+      //   (tr: HTMLTableRowElement, index: number) => {
+      //     ;(trs[index] as HTMLTableRowElement).style.height =
+      //       tr.offsetHeight + 'px'
+      //   }
+      // )
     }
     destroy(...args: any[]) {
       const { fixedTableEvents } = this
