@@ -26,4 +26,4 @@ import selection from './plugins/selection'
 export default selection(sort(fixedHeader(fixedTable(BaseGrid))))
 
 // 输出基本类和内置插件，让用户可以自行构造。
-export { BaseGrid, fixedHeader, fixedTable }
+export { BaseGrid, fixedHeader, fixedTable, sort, selection }
