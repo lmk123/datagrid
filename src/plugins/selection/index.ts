@@ -5,7 +5,7 @@ import * as g from '../../core/index'
 import * as x from '../fixed-table'
 /* tslint:enable:no-unused-variable */
 
-import BaseGrid, { DataGridConstructor } from '../../core'
+import BaseGrid, { DataGridConstructor, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
 import closest from '../../utils/closest'
 
@@ -66,6 +66,13 @@ export default function<T extends DataGridConstructor>(Base: T) {
         children.forEach(updateSelected)
       }
       return true
+    }
+
+    setData(data: TableData) {
+      // 刷新表格前重置选中状态
+      this.selectionIndex = -1
+      this.emit('select', -1)
+      super.setData(data)
     }
 
     destroy(...args: any[]) {
