@@ -99,7 +99,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
           const oldOrderIndex = this.sortOrderIndex
           const oldSortColumnIndex = this.sortColumnIndex
           if (oldSortColumnIndex !== newSortColumnIndex) {
-            this.sortColumnIndex = newSortColumnIndex
             newOrderIndex = 1
           } else {
             newOrderIndex = this.sortOrderIndex + 1
@@ -107,7 +106,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
               newOrderIndex -= orderLength
             }
           }
-          this.sortOrderIndex = newOrderIndex
 
           const setSort = (grid: BaseGrid) => {
             // 通过索引号计算在表格中 th 元素的索引号，主要是针对右侧固定表格的
@@ -118,6 +116,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
                 : columnIndex
             }
             const ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children
+
+            // 清除上一个排序指示箭头
             if (oldOrderIndex) {
               const oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)]
               if (oldTh) {
@@ -125,25 +125,19 @@ export default function<T extends DataGridConstructor>(Base: T) {
               }
             }
 
-            let gridThIndex
-            if (
-              newOrderIndex &&
-              (gridThIndex = columnIndex2trIndex(newSortColumnIndex)) >= 0
-            ) {
+            // 给表格设置正确的排序状态以在重新调用 setData() 时保留排序指示箭头
+            // @ts-ignore
+            grid.sortOrderIndex = newOrderIndex
+            const gridThIndex = columnIndex2trIndex(newSortColumnIndex)
+            // @ts-ignore
+            grid.sortColumnIndex = gridThIndex
+
+            // 有排序方向时才给表格设置新的指示箭头
+            if (newOrderIndex) {
               const newTh = ths[gridThIndex]
               if (newTh) {
                 newTh.classList.add('sort-by-' + newOrderIndex)
               }
-              // 给固定表格设置正确的排序状态以在重新调用 setData() 时保留排序指示箭头
-              // @ts-ignore
-              grid.sortColumnIndex = gridThIndex
-              // @ts-ignore
-              grid.sortOrderIndex = newOrderIndex
-            } else {
-              // @ts-ignore
-              grid.sortColumnIndex = -1
-              // @ts-ignore
-              grid.sortOrderIndex = 0
             }
           }
 
