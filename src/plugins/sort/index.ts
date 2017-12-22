@@ -81,13 +81,17 @@ export default function<T extends DataGridConstructor>(Base: T) {
           const ths = (th.parentElement as HTMLTableSectionElement).children
           const thIndex = indexOf.call(ths, th)
 
+          // 开始计算被排序的列的索引
           let newSortColumnIndex: number
+
+          // 如果被点击的是右侧的固定表格，则索引号的计算方式要稍微复杂一些
           const isRightFixed = closest(th, '.fixed-grid-right', el)
           if (isRightFixed) {
             newSortColumnIndex =
               this.curData.columns.length -
               (this.fixedTables!.right!.fixedColumns! - thIndex)
           } else {
+            // 点击主表格本身或者左侧固定表格的索引号就是 th 元素的索引号
             newSortColumnIndex = thIndex
           }
 
@@ -106,6 +110,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
           this.sortOrderIndex = newOrderIndex
 
           const setSort = (grid: BaseGrid) => {
+            // 通过索引号计算在表格中 th 元素的索引号，主要是针对右侧固定表格的
             const columnIndex2trIndex = (columnIndex: number) => {
               return grid.fixedPlace === 'right'
                 ? grid.fixedColumns! -
@@ -119,17 +124,26 @@ export default function<T extends DataGridConstructor>(Base: T) {
                 oldTh.classList.remove('sort-by-' + oldOrderIndex)
               }
             }
-            if (newOrderIndex) {
-              const newTh = ths[columnIndex2trIndex(newSortColumnIndex)]
-              console.log(
-                grid.fixedPlace === 'right'
-                  ? grid.fixedColumns! -
-                    (this.curData.columns.length - newSortColumnIndex)
-                  : newSortColumnIndex
-              )
+
+            let gridThIndex
+            if (
+              newOrderIndex &&
+              (gridThIndex = columnIndex2trIndex(newSortColumnIndex)) >= 0
+            ) {
+              const newTh = ths[gridThIndex]
               if (newTh) {
                 newTh.classList.add('sort-by-' + newOrderIndex)
               }
+              // 给固定表格设置正确的排序状态以在重新调用 setData() 时保留排序指示箭头
+              // @ts-ignore
+              grid.sortColumnIndex = gridThIndex
+              // @ts-ignore
+              grid.sortOrderIndex = newOrderIndex
+            } else {
+              // @ts-ignore
+              grid.sortColumnIndex = -1
+              // @ts-ignore
+              grid.sortOrderIndex = 0
             }
           }
 
