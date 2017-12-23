@@ -667,7 +667,9 @@ var sort = function (Base) {
                         { return; }
                     var ths = th.parentElement.children;
                     var thIndex = indexOf$1.call(ths, th);
+                    // 开始计算被排序的列的索引
                     var newSortColumnIndex;
+                    // 如果被点击的是右侧的固定表格，则索引号的计算方式要稍微复杂一些
                     var isRightFixed = closest(th, '.fixed-grid-right', el);
                     if (isRightFixed) {
                         newSortColumnIndex =
@@ -675,13 +677,11 @@ var sort = function (Base) {
                                 (this$1.fixedTables.right.fixedColumns - thIndex);
                     }
                     else {
+                        // 点击主表格本身或者左侧固定表格的索引号就是 th 元素的索引号
                         newSortColumnIndex = thIndex;
                     }
                     var newOrderIndex;
-                    var oldOrderIndex = this$1.sortOrderIndex;
-                    var oldSortColumnIndex = this$1.sortColumnIndex;
-                    if (oldSortColumnIndex !== newSortColumnIndex) {
-                        this$1.sortColumnIndex = newSortColumnIndex;
+                    if (this$1.sortColumnIndex !== newSortColumnIndex) {
                         newOrderIndex = 1;
                     }
                     else {
@@ -690,39 +690,8 @@ var sort = function (Base) {
                             newOrderIndex -= orderLength;
                         }
                     }
-                    this$1.sortOrderIndex = newOrderIndex;
-                    var setSort = function (grid) {
-                        var columnIndex2trIndex = function (columnIndex) {
-                            return grid.fixedPlace === 'right'
-                                ? grid.fixedColumns -
-                                    (this$1.curData.columns.length - columnIndex)
-                                : columnIndex;
-                        };
-                        var ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children;
-                        if (oldOrderIndex) {
-                            var oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)];
-                            if (oldTh) {
-                                oldTh.classList.remove('sort-by-' + oldOrderIndex);
-                            }
-                        }
-                        if (newOrderIndex) {
-                            var newTh = ths[columnIndex2trIndex(newSortColumnIndex)];
-                            console.log(grid.fixedPlace === 'right'
-                                ? grid.fixedColumns -
-                                    (this$1.curData.columns.length - newSortColumnIndex)
-                                : newSortColumnIndex);
-                            if (newTh) {
-                                newTh.classList.add('sort-by-' + newOrderIndex);
-                            }
-                        }
-                    };
-                    setSort(this$1);
-                    var ref = this$1;
-                    var children = ref.children;
-                    if (children) {
-                        children.forEach(setSort);
-                    }
-                    this$1.emit('sort', thIndex, newOrderIndex);
+                    this$1.setSort(newSortColumnIndex, newOrderIndex);
+                    this$1.emit('sort', newSortColumnIndex, newOrderIndex);
                 });
             }
         }
@@ -730,6 +699,49 @@ var sort = function (Base) {
         if ( Base ) anonymous.__proto__ = Base;
         anonymous.prototype = Object.create( Base && Base.prototype );
         anonymous.prototype.constructor = anonymous;
+        anonymous.prototype.setSort = function setSort (newSortColumnIndex, newOrderIndex) {
+            var this$1 = this;
+            if ( newSortColumnIndex === void 0 ) newSortColumnIndex = -1;
+            if ( newOrderIndex === void 0 ) newOrderIndex = 0;
+
+            var oldSortColumnIndex = this.sortColumnIndex;
+            var oldOrderIndex = this.sortOrderIndex;
+            var setSort = function (grid) {
+                // 通过索引号计算在表格中 th 元素的索引号，主要是针对右侧固定表格的
+                var columnIndex2trIndex = function (columnIndex) {
+                    return grid.fixedPlace === 'right'
+                        ? grid.fixedColumns - (this$1.curData.columns.length - columnIndex)
+                        : columnIndex;
+                };
+                var ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children;
+                // 清除上一个排序指示箭头
+                if (oldOrderIndex) {
+                    var oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)];
+                    if (oldTh) {
+                        oldTh.classList.remove('sort-by-' + oldOrderIndex);
+                    }
+                }
+                // 给表格设置正确的排序状态以在重新调用 setData() 时保留排序指示箭头
+                // @ts-ignore
+                grid.sortOrderIndex = newOrderIndex;
+                var gridThIndex = columnIndex2trIndex(newSortColumnIndex);
+                // @ts-ignore
+                grid.sortColumnIndex = gridThIndex;
+                // 有排序方向时才给表格设置新的指示箭头
+                if (newOrderIndex) {
+                    var newTh = ths[gridThIndex];
+                    if (newTh) {
+                        newTh.classList.add('sort-by-' + newOrderIndex);
+                    }
+                }
+            };
+            setSort(this);
+            var ref = this;
+            var children = ref.children;
+            if (children) {
+                children.forEach(setSort);
+            }
+        };
         anonymous.prototype.destroy = function destroy () {
             var args = [], len = arguments.length;
             while ( len-- ) args[ len ] = arguments[ len ];
@@ -803,6 +815,12 @@ var selection = function (Base) {
                 children.forEach(updateSelected);
             }
             return true;
+        };
+        anonymous.prototype.setData = function setData (data) {
+            // 刷新表格前重置选中状态
+            this.selectionIndex = -1;
+            this.emit('select', -1);
+            Base.prototype.setData.call(this, data);
         };
         anonymous.prototype.destroy = function destroy () {
             var args = [], len = arguments.length;
