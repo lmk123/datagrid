@@ -93,6 +93,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       }
       const { curData } = this
       fixedTable.fixedColumns = count
+      this.syncFixedWidth(place)
       fixedTable.setData({
         columns:
           place === 'left'
@@ -101,7 +102,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
         rows: curData.rows
       })
       fixedTable.el.style.display = ''
-      this.syncFixedWidth(place)
     }
 
     /**

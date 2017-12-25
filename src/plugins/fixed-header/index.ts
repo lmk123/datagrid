@@ -75,7 +75,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
       this.colGroup.innerHTML = Array.prototype.reduce.call(
         theadRow.children,
         (result: string, th: HTMLTableHeaderCellElement) => {
-          return (result += `<col width="${th.clientWidth}">`)
+          // 这里不能用 clientWidth，偶尔会有 1px 的偏差
+          return (result += `<col width="${th.offsetWidth}">`)
         },
         ''
       )
@@ -95,11 +96,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
     setData(data: TableData) {
       super.setData(data)
       this.fixedTheadRow.innerHTML = this.ui.theadRow.innerHTML
-      // 需要等到 fixedTable 中的 syncFixedWidth 更新完之后再同步宽度，
-      // 不然会出现 header 宽度不一致的问题
-      raf(() => {
-        this.syncFixedHeader()
-      })
+      this.syncFixedHeader()
     }
 
     destroy(...args: any[]) {
