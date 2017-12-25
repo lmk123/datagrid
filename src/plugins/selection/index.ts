@@ -13,7 +13,7 @@ const { indexOf } = Array.prototype
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
-    private selectionIndex: number
+    private selectionIndex = -1
     private ch?: Function
 
     constructor(...args: any[]) {
@@ -70,8 +70,10 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
     setData(data: TableData) {
       // 刷新表格前重置选中状态
-      this.selectionIndex = -1
-      this.emit('select', -1)
+      if (this.selectionIndex !== -1) {
+        this.selectionIndex = -1
+        this.emit('select', -1)
+      }
       super.setData(data)
     }
 
