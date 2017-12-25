@@ -24,6 +24,9 @@
   padding-left: 15px;
   padding-right: 15px;
   white-space: nowrap;
+  overflow: hidden;
+  max-width: 150px;
+  text-overflow: ellipsis;
   height: 32px;
 }
 
