@@ -135,6 +135,17 @@ export default function<T extends DataGridConstructor>(Base: T) {
       // fixedTable.el.style.width = `${width}px`
       fixedTable.ui.colgroup.innerHTML = colHtml
 
+      const { scrollContainer } = this.ui
+      // 将固定表格的高度设为主表格的内容高度，这样做是为了露出主表格的横向滚动条
+      const { clientHeight } = scrollContainer
+      fixedTable.el.style.height = scrollContainer.clientHeight + 'px'
+
+      // 将右侧固定表格的右偏移值设为主表格的竖向滚动条的宽度以露出主表格的竖向滚动条
+      if (place === 'right') {
+        fixedTable.el.style.right =
+          scrollContainer.offsetWidth - scrollContainer.clientWidth + 'px'
+      }
+
       // 目前的做法是根据表格内容平铺表格，不会导致换行，所以暂时注释掉同步高度的代码
       // 同步表头的高度
       // fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px'

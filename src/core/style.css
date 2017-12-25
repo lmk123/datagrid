@@ -1,5 +1,6 @@
 .datagrid {
   position: relative;
+  overflow: hidden;
 }
 
 .datagrid .modal {

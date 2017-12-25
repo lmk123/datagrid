@@ -14,6 +14,7 @@ import './style.css'
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
+    private fixedHeaderWrapper = document.createElement('div')
     private fixedTHead = document.createElement('thead')
     private fixedTheadRow = document.createElement('tr')
     private readonly fixedHeaderTable = document.createElement('table')
@@ -25,12 +26,16 @@ export default function<T extends DataGridConstructor>(Base: T) {
       const { el, ui } = this
       ui.thead.style.visibility = 'hidden'
 
-      // 创建一个包含表头的 div，通过 CSS 固定在滚动区域上方
-      const fixedHeaderWrapper = document.createElement('div')
-      fixedHeaderWrapper.className = 'fixed-header'
       // 创建一个仅包含 thead 的表格作为固定表头
       // 使用 colgroup 保持原本的表格与固定表头的单元格宽度一致
-      const { fixedHeaderTable, colGroup, fixedTHead, fixedTheadRow } = this
+      const {
+        fixedHeaderWrapper,
+        fixedHeaderTable,
+        colGroup,
+        fixedTHead,
+        fixedTheadRow
+      } = this
+      fixedHeaderWrapper.className = 'fixed-header'
       ui.fixedThead = fixedTHead
       ui.fixedTheadRow = fixedTheadRow
       fixedHeaderTable.appendChild(colGroup)
@@ -70,12 +75,17 @@ export default function<T extends DataGridConstructor>(Base: T) {
       this.colGroup.innerHTML = Array.prototype.reduce.call(
         theadRow.children,
         (result: string, th: HTMLTableHeaderCellElement) => {
-          return (result += `<col width="${th.offsetWidth}">`)
+          return (result += `<col width="${th.clientWidth}">`)
         },
         ''
       )
-
       this.fixedHeaderTable.style.width = table.offsetWidth + 'px'
+
+      // 保证主表格的固定表头始终露出右侧的竖向滚动条
+      if (!this.parent) {
+        this.fixedHeaderWrapper.style.width =
+          this.ui.scrollContainer.clientWidth + 'px'
+      }
 
       // 同步表头的高度
       this.fixedTheadRow.style.height = theadRow.offsetHeight + 'px'
