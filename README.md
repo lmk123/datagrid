@@ -92,8 +92,8 @@ const grid = new BaseGrid(options)
 
 其中 `options` 及它的所有设置项都是可选的，它接收如下两个设置：
 
-* `th`：表格中的 `<th>` 元素的渲染函数。第一个参数是一个 `Column` 对象(详细介绍见下文)，第二个参数是这个 Column 对象的索引号。可以返回一段 HTML 字符串，或者一个 `Node`，也可以返回一个包含多个元素的 `DocumentFragment`。默认返回 `Column` 对象中的 `key` 属性的值。
-* `td`：表格中的 `<td>`元素的渲染函数。第一个参数是一个 `Column` 对象(详细介绍见下文)，第二个参数是一个 `Row` 对象，第三个是 `Column` 对象的索引号，第四个是 `Row` 对象的索引号。可以返回一段 HTML 字符串，或者一个 `Node`，也可以返回一个包含多个元素的 `DocumentFragment`。默认返回 `Row` 对象中对应 `Column.key` 的值。
+* `th`：表格中的 `<th>` 元素的渲染函数。第一个参数是一个 `Column` 对象(详细介绍见下文)，第二个参数是这个 Column 对象的索引号。可以返回一段 HTML 字符串，或者一个 `Node`，也可以返回一个包含多个元素的 `DocumentFragment`。第三个参数是当前渲染的 `<th>` 元素，方便直接操作此元素的 `title` 等属性，当然你也可以通过这个元素直接设置内容。默认返回 `Column` 对象中的 `key` 属性的值。
+* `td`：表格中的 `<td>`元素的渲染函数。第一个参数是一个 `Column` 对象(详细介绍见下文)，第二个参数是一个 `Row` 对象，第三个参数是当前渲染的 `<td>` 元素，方便直接操作此元素的 `title` 等属性，当然你也可以通过这个元素直接设置内容。第四个是 `Column` 对象的索引号，第五个是 `Row` 对象的索引号。可以返回一段 HTML 字符串，或者一个 `Node`，也可以返回一个包含多个元素的 `DocumentFragment`。默认返回 `Row` 对象中对应 `Column.key` 的值。
 
 内置插件可能会添加其他一些设置项，后面介绍内置插件时会详细说明。
 
@@ -215,6 +215,12 @@ grid.on('sort', (columnIndex, order) => {
   console.log(`用户点击了第 ${columnIndex + 1} 个表头，此时箭头 ${orderMap[order]}`)
 })
 ```
+
+sort 插件给 BaseGrid 添加了一个方法：
+
+#### setSort([columnIndex: number, order: number])
+
+设置当前表格的选中状态指示标志。如果要清空指示标志不需要传入任何参数。
 
 ## 许可
 

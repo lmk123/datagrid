@@ -22,10 +22,11 @@ export interface Row {
 }
 
 export interface DataGridOptions {
-  th?: (column: ColumnObj, index: number) => string | Node
+  th?: (column: ColumnObj, index: number, th: HTMLTableHeaderCellElement) => string | Node
   td?: (
     column: ColumnObj,
     row: Row,
+    td: HTMLTableDataCellElement,
     columnIndex: number,
     rowIndex: number
   ) => string | Node
@@ -57,6 +58,7 @@ function defaultTdRenderer(column: ColumnObj, row: Row) {
  * @param content 内容可以是字符串或者一个节点。如果有多个节点，可以传入一个 Fragment 对象。
  */
 function fillNode(node: HTMLElement, content: string | Node) {
+  if (content === undefined) return
   if (content instanceof Node) {
     node.appendChild(content)
   } else {
@@ -131,7 +133,7 @@ export default class BaseGrid extends TinyEmitter {
           }
         }
         const th = document.createElement('th')
-        fillNode(th, this.options.th!(column, index))
+        fillNode(th, this.options.th!(column, index, th))
         this.emit('after th render', th, column, index)
         fragment.appendChild(th)
       })
@@ -152,8 +154,8 @@ export default class BaseGrid extends TinyEmitter {
             }
           }
           const td = document.createElement('td')
-          fillNode(td, this.options.td!(column, row, columnIndex, rowIndex))
-          this.emit('after td render', td, column, row, rowIndex, columnIndex)
+          fillNode(td, this.options.td!(column, row, td, columnIndex, rowIndex))
+          this.emit('after td render', td, column, row, td, rowIndex, columnIndex)
           tr.appendChild(td)
         })
         fragment.appendChild(tr)
