@@ -8,7 +8,7 @@ import * as x from '../fixed-table'
 // tslint:disable-next-line:no-duplicate-imports
 import { DataGridConstructor, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
-import { raf } from '../../utils/raf-throttle'
+// import { raf } from '../../utils/raf-throttle'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 

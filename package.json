@@ -1,6 +1,6 @@
 {
   "name": "datagrid",
-  "version": "0.4.6",
+  "version": "0.5.0",
   "description": "插件式表格组件。",
   "repository": {
     "type": "git",

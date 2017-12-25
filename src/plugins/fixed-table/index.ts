@@ -137,7 +137,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
       const { scrollContainer } = this.ui
       // 将固定表格的高度设为主表格的内容高度，这样做是为了露出主表格的横向滚动条
-      const { clientHeight } = scrollContainer
       fixedTable.el.style.height = scrollContainer.clientHeight + 'px'
 
       // 将右侧固定表格的右偏移值设为主表格的竖向滚动条的宽度以露出主表格的竖向滚动条
