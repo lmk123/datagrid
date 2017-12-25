@@ -72,7 +72,7 @@ var TinyEmitter = /** @class */ (function () {
 
 var template = "<div class=scroll-container><table><thead><tr></tr></thead><tbody></tbody></table></div><div class=modal><div class=modal-content></div></div>";
 
-__$styleInject(".datagrid{position:relative}.datagrid .modal{display:none;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;position:absolute;top:0;left:0;right:0;bottom:0;background-color:#fff}.datagrid.show-modal .modal{display:-webkit-box;display:-ms-flexbox;display:flex}.datagrid .scroll-container{height:100%;overflow:scroll}.datagrid table{min-width:100%;border-collapse:collapse;border-spacing:0}.datagrid td{word-wrap:break-word;word-break:break-all}",undefined);
+__$styleInject(".datagrid{position:relative;overflow:hidden}.datagrid .modal{display:none;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;position:absolute;top:0;left:0;right:0;bottom:0;background-color:#fff}.datagrid.show-modal .modal{display:-webkit-box;display:-ms-flexbox;display:flex}.datagrid .scroll-container{height:100%;overflow:scroll}.datagrid table{min-width:100%;border-collapse:collapse;border-spacing:0}.datagrid td{word-wrap:break-word;word-break:break-all}",undefined);
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 function forOwn(obj, cb) {
@@ -109,6 +109,8 @@ function defaultTdRenderer(column, row) {
  * @param content 内容可以是字符串或者一个节点。如果有多个节点，可以传入一个 Fragment 对象。
  */
 function fillNode(node, content) {
+    if (content === undefined)
+        { return; }
     if (content instanceof Node) {
         node.appendChild(content);
     }
@@ -171,7 +173,7 @@ var BaseGrid = (function (TinyEmitter$$1) {
                     };
                 }
                 var th = document.createElement('th');
-                fillNode(th, this$1.options.th(column, index));
+                fillNode(th, this$1.options.th(column, index, th));
                 this$1.emit('after th render', th, column, index);
                 fragment.appendChild(th);
             });
@@ -192,8 +194,8 @@ var BaseGrid = (function (TinyEmitter$$1) {
                         };
                     }
                     var td = document.createElement('td');
-                    fillNode(td, this$1.options.td(column, row, columnIndex, rowIndex));
-                    this$1.emit('after td render', td, column, row, rowIndex, columnIndex);
+                    fillNode(td, this$1.options.td(column, row, td, columnIndex, rowIndex));
+                    this$1.emit('after td render', td, column, row, td, rowIndex, columnIndex);
                     tr.appendChild(td);
                 });
                 fragment.appendChild(tr);
@@ -248,15 +250,6 @@ var addEvent = function (target, event, handler) {
         target.removeEventListener(event, handler);
     };
 };
-
-// https://caniuse.com/#feat=requestanimationframe
-var raf = window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    // @ts-ignore
-    window.mozRequestAnimationFrame ||
-    function (cb) {
-        setTimeout(cb, 1000 / 60);
-    };
 
 /** 默认情况下使用 join 将参数转换成一个字符串作为唯一的缓存键 */
 function generate(args) {
@@ -313,8 +306,9 @@ var getCSSProperty = memory(function (property) {
     return result;
 });
 
-__$styleInject(".datagrid .fixed-header{position:absolute;top:0;left:0;right:0;background-color:#fff;overflow:hidden}.datagrid .fixed-header table{will-change:transform}",undefined);
+__$styleInject(".datagrid .fixed-header{position:absolute;top:0;left:0;background-color:#fff;overflow:hidden}.datagrid .fixed-header table{will-change:transform}",undefined);
 
+// import { raf } from '../../utils/raf-throttle'
 var fixedHeader = function (Base) {
     return (function (Base) {
         function anonymous() {
@@ -322,6 +316,7 @@ var fixedHeader = function (Base) {
             while ( len-- ) args[ len ] = arguments[ len ];
 
             Base.apply(this, args);
+            this.fixedHeaderWrapper = document.createElement('div');
             this.fixedTHead = document.createElement('thead');
             this.fixedTheadRow = document.createElement('tr');
             this.fixedHeaderTable = document.createElement('table');
@@ -330,16 +325,15 @@ var fixedHeader = function (Base) {
             var el = ref.el;
             var ui = ref.ui;
             ui.thead.style.visibility = 'hidden';
-            // 创建一个包含表头的 div，通过 CSS 固定在滚动区域上方
-            var fixedHeaderWrapper = document.createElement('div');
-            fixedHeaderWrapper.className = 'fixed-header';
             // 创建一个仅包含 thead 的表格作为固定表头
             // 使用 colgroup 保持原本的表格与固定表头的单元格宽度一致
             var ref$1 = this;
+            var fixedHeaderWrapper = ref$1.fixedHeaderWrapper;
             var fixedHeaderTable = ref$1.fixedHeaderTable;
             var colGroup = ref$1.colGroup;
             var fixedTHead = ref$1.fixedTHead;
             var fixedTheadRow = ref$1.fixedTheadRow;
+            fixedHeaderWrapper.className = 'fixed-header';
             ui.fixedThead = fixedTHead;
             ui.fixedTheadRow = fixedTheadRow;
             fixedHeaderTable.appendChild(colGroup);
@@ -379,23 +373,23 @@ var fixedHeader = function (Base) {
             var table = ref.table;
             var theadRow = ref.theadRow;
             this.colGroup.innerHTML = Array.prototype.reduce.call(theadRow.children, function (result, th) {
+                // 这里不能用 clientWidth，偶尔会有 1px 的偏差
                 return (result += "<col width=\"" + (th.offsetWidth) + "\">");
             }, '');
             this.fixedHeaderTable.style.width = table.offsetWidth + 'px';
+            // 保证主表格的固定表头始终露出右侧的竖向滚动条
+            if (!this.parent) {
+                this.fixedHeaderWrapper.style.width =
+                    this.ui.scrollContainer.clientWidth + 'px';
+            }
             // 同步表头的高度
             this.fixedTheadRow.style.height = theadRow.offsetHeight + 'px';
         };
         /** 重载 setData 方法，在渲染完表格后同步表头的内容。 */
         anonymous.prototype.setData = function setData (data) {
-            var this$1 = this;
-
             Base.prototype.setData.call(this, data);
             this.fixedTheadRow.innerHTML = this.ui.theadRow.innerHTML;
-            // 需要等到 fixedTable 中的 syncFixedWidth 更新完之后再同步宽度，
-            // 不然会出现 header 宽度不一致的问题
-            raf(function () {
-                this$1.syncFixedHeader();
-            });
+            this.syncFixedHeader();
         };
         anonymous.prototype.destroy = function destroy () {
             var args = [], len = arguments.length;
@@ -523,6 +517,7 @@ var fixedTable = function (Base) {
             var ref$1 = this;
             var curData = ref$1.curData;
             fixedTable.fixedColumns = count;
+            this.syncFixedWidth(place);
             fixedTable.setData({
                 columns: place === 'left'
                     ? curData.columns.slice(0, count)
@@ -530,7 +525,6 @@ var fixedTable = function (Base) {
                 rows: curData.rows
             });
             fixedTable.el.style.display = '';
-            this.syncFixedWidth(place);
         };
         /**
          * 同步一个固定表格的宽度、高度等状态。
@@ -563,6 +557,15 @@ var fixedTable = function (Base) {
             // 给容器固定这个宽度可以让固定表格两侧的 border 不显示出来
             // fixedTable.el.style.width = `${width}px`
             fixedTable.ui.colgroup.innerHTML = colHtml;
+            var ref$1 = this.ui;
+            var scrollContainer = ref$1.scrollContainer;
+            // 将固定表格的高度设为主表格的内容高度，这样做是为了露出主表格的横向滚动条
+            fixedTable.el.style.height = scrollContainer.clientHeight + 'px';
+            // 将右侧固定表格的右偏移值设为主表格的竖向滚动条的宽度以露出主表格的竖向滚动条
+            if (place === 'right') {
+                fixedTable.el.style.right =
+                    scrollContainer.offsetWidth - scrollContainer.clientWidth + 'px';
+            }
             // 目前的做法是根据表格内容平铺表格，不会导致换行，所以暂时注释掉同步高度的代码
             // 同步表头的高度
             // fixedTable.ui.theadRow.style.height = this.ui.theadRow.offsetHeight + 'px'
@@ -767,6 +770,7 @@ var selection = function (Base) {
             while ( len-- ) args[ len ] = arguments[ len ];
 
             Base.apply(this, args);
+            this.selectionIndex = -1;
             if (!this.parent) {
                 var ref = this;
                 var el = ref.el;
@@ -818,8 +822,10 @@ var selection = function (Base) {
         };
         anonymous.prototype.setData = function setData (data) {
             // 刷新表格前重置选中状态
-            this.selectionIndex = -1;
-            this.emit('select', -1);
+            if (this.selectionIndex !== -1) {
+                this.selectionIndex = -1;
+                this.emit('select', -1);
+            }
             Base.prototype.setData.call(this, data);
         };
         anonymous.prototype.destroy = function destroy () {
@@ -1212,7 +1218,7 @@ var data = {
     ]
 };
 
-__$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding-left:15px;padding-right:15px;white-space:nowrap;height:32px}.datagrid th{position:relative;border-right:1px solid #eee;background:#f8f8f8}.datagrid thead tr{border-bottom:1px solid #eee}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
+__$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding-left:15px;padding-right:15px;white-space:nowrap;overflow:hidden;max-width:150px;text-overflow:ellipsis;height:32px}.datagrid th{position:relative;border-right:1px solid #eee;background:#f8f8f8}.datagrid thead tr{border-bottom:1px solid #eee}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
 
 var grid = new DataGrid();
 // @ts-ignore
