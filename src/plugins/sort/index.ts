@@ -113,7 +113,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
     }
 
     setSort(sortColumn: Column | null = null, newOrderIndex = 0) {
-      const oldSortColumn = this.sortColumn
       const oldOrderIndex = this.sortOrderIndex
       const setSort = (grid: BaseGrid) => {
         const thRow = grid.ui.fixedTheadRow || grid.ui.theadRow
