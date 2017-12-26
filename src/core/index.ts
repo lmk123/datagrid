@@ -12,7 +12,7 @@ import assign from '../utils/assign'
 export type DataGridConstructor = new (...args: any[]) => BaseGrid
 
 export interface ColumnObj {
-  key: string
+  name: string
 }
 
 export type Column = string | ColumnObj
@@ -49,11 +49,11 @@ export interface TableData {
 }
 
 function defaultThRenderer(column: ColumnObj) {
-  return column.key
+  return column.name
 }
 
 function defaultTdRenderer(column: ColumnObj, row: Row) {
-  return row[column.key]
+  return row[column.name]
 }
 
 /**
@@ -133,7 +133,7 @@ export default class BaseGrid extends TinyEmitter {
       columns.forEach((column, index) => {
         if (typeof column === 'string') {
           this.curData.columns[index] = column = {
-            key: column
+            name: column
           }
         }
         const th = document.createElement('th')
@@ -154,7 +154,7 @@ export default class BaseGrid extends TinyEmitter {
         columns.forEach((column, columnIndex) => {
           if (typeof column === 'string') {
             column = {
-              key: column
+              name: column
             }
           }
           const td = document.createElement('td')

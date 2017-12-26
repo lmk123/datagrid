@@ -105,7 +105,7 @@ BaseGrid 有这些方法：
 
 使用数据渲染表格。参数是可选的，如果不传任何参数，则表格会显示“暂无数据”的提示。
 
-`Column` 目前只有一个属性：`key`，它是表头的内容，同时也是 `Row` 中用于读取对应数据的字段名。如果传入的是字符串，则会在内部被转换为一个 `key` 属性为字符串值的对象。
+`Column` 目前只有一个属性：`name`，它是表头的内容，同时也是 `Row` 中用于读取对应数据的字段名。如果传入的是字符串，则会在内部被转换为一个 `name` 属性为字符串值的对象。
 
 示例：
 
@@ -114,7 +114,7 @@ grid.setData({
   // 也可以写成 columns: ['年龄']
   columns: [
     {
-      key: '年龄'
+      name: '年龄'
     }
   ],
   rows: [
@@ -223,6 +223,51 @@ sort 插件给 BaseGrid 添加了一个方法：
 #### setSort([column: Column, order: number])
 
 设置当前表格的选中状态指示标志。如果要清空指示标志不需要传入任何参数。
+
+#### 关于 sort 插件的一点说明
+
+sort 插件在内部保存了当前正处于排序状态的 Column 对象本身，所以即使你改变了 columns 的顺序，箭头仍然会跟随那个 Column 对象显示，举例来说：
+
+```js
+import DataGrid from 'datagrid'
+let columns = [{ name: '你好' }, { name: '世界' }]
+const rows = [{ 你好: '测试', 世界: '一下' }]
+const grid = new DataGrid()
+grid.setData({ columns, rows })
+// 使用「你好」这一列排序
+grid.setSort(columns[0], 1)
+// 将「你好」与「世界」这两列的位置调换
+columns = [columns[1], columns[0]]
+// 重新设置数据
+grid.setData({ columns, rows })
+```
+
+现在你会发现指示的箭头仍然是显示在「你好」这一列（此时它是表格中的第二列）。
+
+这样当然很好，但是当你使用**字符串**形式的 `columns` 时，DataGrid 在内部给你转换成了一个对象，而**对象之间并不相等**，所以上面的代码如果将 `columns` 写成字符串形式就不起作用了：
+
+```js
+grid.setData({
+  columns: ['你好', '世界']
+})
+grid.setData({
+  columns: ['世界', '你好']
+})
+// 现在排序箭头并没有显示在「你好」这一列上，这是因为前后两次调用 setData 方法时内部生成的 Column 对象并不相等
+```
+
+同样的情况也会出现在你使用新的对象调用 `setData` 时：
+
+```js
+grid.setData({
+  columns: [{ name: '你好' }, { name: '世界' }]
+})
+grid.setData({
+  columns: [{ name: '世界' }, { name: '你好' }]
+})
+```
+
+你可能会希望排序箭头能跟随「你好」这一列，但是前后两次调用 setData 方法时，`columns` 中的对象**并不相等**，所以导致第二次生成的表格中没有排序箭头显示。
 
 ## 许可
 
