@@ -98,10 +98,10 @@ var assign = Object.assign ||
  * @fileOverview 输出一个最基本的、仅包含核心功能的表格类。
  */
 function defaultThRenderer(column) {
-    return column.key;
+    return column.name;
 }
 function defaultTdRenderer(column, row) {
-    return row[column.key];
+    return row[column.name];
 }
 /**
  * 根据内容的类型选择不同的方式填充节点。
@@ -158,8 +158,8 @@ var BaseGrid = (function (TinyEmitter$$1) {
         var columns = data.columns; if ( columns === void 0 ) columns = [];
         var rows = data.rows; if ( rows === void 0 ) rows = [];
         this.curData = {
-            columns: columns,
-            rows: rows
+            columns: columns.slice(),
+            rows: rows.slice()
         };
         var ref = this.ui;
         var theadRow = ref.theadRow;
@@ -168,8 +168,8 @@ var BaseGrid = (function (TinyEmitter$$1) {
         if (columns.length) {
             columns.forEach(function (column, index) {
                 if (typeof column === 'string') {
-                    column = {
-                        key: column
+                    this$1.curData.columns[index] = column = {
+                        name: column
                     };
                 }
                 var th = document.createElement('th');
@@ -190,7 +190,7 @@ var BaseGrid = (function (TinyEmitter$$1) {
                 columns.forEach(function (column, columnIndex) {
                     if (typeof column === 'string') {
                         column = {
-                            key: column
+                            name: column
                         };
                     }
                     var td = document.createElement('td');
@@ -251,6 +251,22 @@ var addEvent = function (target, event, handler) {
     };
 };
 
+var debounce = function (func, wait) {
+    if ( wait === void 0 ) wait = 250;
+
+    var timeout;
+    return function () {
+        var this$1 = this;
+        var args = [], len = arguments.length;
+        while ( len-- ) args[ len ] = arguments[ len ];
+
+        clearTimeout(timeout);
+        timeout = setTimeout(function () {
+            func.apply(this$1, args);
+        }, wait);
+    };
+};
+
 /** 默认情况下使用 join 将参数转换成一个字符串作为唯一的缓存键 */
 function generate(args) {
     return args.join();
@@ -308,10 +324,10 @@ var getCSSProperty = memory(function (property) {
 
 __$styleInject(".datagrid .fixed-header{position:absolute;top:0;left:0;background-color:#fff;overflow:hidden}.datagrid .fixed-header table{will-change:transform}",undefined);
 
-// import { raf } from '../../utils/raf-throttle'
 var fixedHeader = function (Base) {
     return (function (Base) {
         function anonymous() {
+            var this$1 = this;
             var args = [], len = arguments.length;
             while ( len-- ) args[ len ] = arguments[ len ];
 
@@ -341,26 +357,22 @@ var fixedHeader = function (Base) {
             fixedHeaderTable.appendChild(fixedTHead);
             fixedHeaderWrapper.appendChild(fixedHeaderTable);
             el.appendChild(fixedHeaderWrapper);
+            this.unbindEvents = [
+                // 窗口大小变化后重新同步表格的宽度
+                addEvent(window, 'resize', debounce(function () {
+                    this$1.syncFixedHeader();
+                }))
+            ];
             if (!this.parent) {
                 var scrollContainer = ui.scrollContainer;
-                this.unbindEvents = [
-                    // 窗口大小变化后重新同步表格的宽度
-                    // TODO: 窗口大小变化后表格的宽度似乎没有变化？
-                    // addEvent(
-                    //   window,
-                    //   'resize',
-                    //   rafThrottle(() => {
-                    //     this.syncFixedHeader()
-                    //   })
-                    // ),
-                    // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
-                    addEvent(scrollContainer, 'scroll', function () {
-                        // 使用 transform 会比同步 scrollLeft 流畅很多
-                        fixedHeaderTable.style[
-                        // @ts-ignore
-                        getCSSProperty('transform')] = "translateX(-" + (scrollContainer.scrollLeft) + "px)";
-                    })
-                ];
+                this.unbindEvents.push(
+                // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
+                addEvent(scrollContainer, 'scroll', function () {
+                    // 使用 transform 会比同步 scrollLeft 流畅很多
+                    fixedHeaderTable.style[
+                    // @ts-ignore
+                    getCSSProperty('transform')] = "translateX(-" + (scrollContainer.scrollLeft) + "px)";
+                }));
             }
         }
 
@@ -448,6 +460,16 @@ var fixedTable = function (Base) {
                 var ref$1 = this;
                 var el = ref$1.el;
                 this.fixedTableEvents = [
+                    // 窗口大小变化后重新同步表格的宽度
+                    addEvent(window, 'resize', debounce(function () {
+                        var ref = this$1;
+                        var fixedTables = ref.fixedTables;
+                        if (fixedTables) {
+                            for (var place in fixedTables) {
+                                this$1.syncFixedWidth(place);
+                            }
+                        }
+                    })),
                     // 同步表格的滚动条位置
                     addEvent(scrollContainer, 'scroll', function () {
                         var ref = this$1;
@@ -654,7 +676,7 @@ var sort = function (Base) {
                     th.appendChild(sortBlock());
                 };
             this.on('after th render', function (th, column, index) {
-                if (index === this$1.sortColumnIndex && this$1.sortOrderIndex) {
+                if (column === this$1.sortColumn && this$1.sortOrderIndex) {
                     th.classList.add('sort-by-' + this$1.sortOrderIndex);
                 }
                 // TODO: 后期增加只针对某些 column 开启排序的功能
@@ -683,8 +705,9 @@ var sort = function (Base) {
                         // 点击主表格本身或者左侧固定表格的索引号就是 th 元素的索引号
                         newSortColumnIndex = thIndex;
                     }
+                    var sortColumn = this$1.curData.columns[newSortColumnIndex];
                     var newOrderIndex;
-                    if (this$1.sortColumnIndex !== newSortColumnIndex) {
+                    if (this$1.sortColumn !== sortColumn) {
                         newOrderIndex = 1;
                     }
                     else {
@@ -693,8 +716,8 @@ var sort = function (Base) {
                             newOrderIndex -= orderLength;
                         }
                     }
-                    this$1.setSort(newSortColumnIndex, newOrderIndex);
-                    this$1.emit('sort', newSortColumnIndex, newOrderIndex);
+                    this$1.setSort(sortColumn, newOrderIndex);
+                    this$1.emit('sort', sortColumn, newOrderIndex);
                 });
             }
         }
@@ -702,37 +725,30 @@ var sort = function (Base) {
         if ( Base ) anonymous.__proto__ = Base;
         anonymous.prototype = Object.create( Base && Base.prototype );
         anonymous.prototype.constructor = anonymous;
-        anonymous.prototype.setSort = function setSort (newSortColumnIndex, newOrderIndex) {
-            var this$1 = this;
-            if ( newSortColumnIndex === void 0 ) newSortColumnIndex = -1;
+        anonymous.prototype.setSort = function setSort (sortColumn, newOrderIndex) {
+            if ( sortColumn === void 0 ) sortColumn = null;
             if ( newOrderIndex === void 0 ) newOrderIndex = 0;
 
-            var oldSortColumnIndex = this.sortColumnIndex;
             var oldOrderIndex = this.sortOrderIndex;
             var setSort = function (grid) {
-                // 通过索引号计算在表格中 th 元素的索引号，主要是针对右侧固定表格的
-                var columnIndex2trIndex = function (columnIndex) {
-                    return grid.fixedPlace === 'right'
-                        ? grid.fixedColumns - (this$1.curData.columns.length - columnIndex)
-                        : columnIndex;
-                };
-                var ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children;
+                var thRow = grid.ui.fixedTheadRow || grid.ui.theadRow;
                 // 清除上一个排序指示箭头
-                if (oldOrderIndex) {
-                    var oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)];
-                    if (oldTh) {
-                        oldTh.classList.remove('sort-by-' + oldOrderIndex);
-                    }
+                var oldSortClass = 'sort-by-' + oldOrderIndex;
+                var lastSortTh = thRow.getElementsByClassName(oldSortClass);
+                if (lastSortTh.length) {
+                    lastSortTh[0].classList.remove('sort-by-' + oldOrderIndex);
                 }
                 // 给表格设置正确的排序状态以在重新调用 setData() 时保留排序指示箭头
                 // @ts-ignore
                 grid.sortOrderIndex = newOrderIndex;
-                var gridThIndex = columnIndex2trIndex(newSortColumnIndex);
                 // @ts-ignore
-                grid.sortColumnIndex = gridThIndex;
+                grid.sortColumn = sortColumn;
                 // 有排序方向时才给表格设置新的指示箭头
                 if (newOrderIndex) {
-                    var newTh = ths[gridThIndex];
+                    var gridThIndex = sortColumn
+                        ? grid.curData.columns.indexOf(sortColumn)
+                        : -1;
+                    var newTh = thRow.children[gridThIndex];
                     if (newTh) {
                         newTh.classList.add('sort-by-' + newOrderIndex);
                     }
@@ -770,7 +786,6 @@ var selection = function (Base) {
             while ( len-- ) args[ len ] = arguments[ len ];
 
             Base.apply(this, args);
-            this.selectionIndex = -1;
             if (!this.parent) {
                 var ref = this;
                 var el = ref.el;
@@ -780,8 +795,9 @@ var selection = function (Base) {
                         { return; }
                     var trs = tr.parentElement.children;
                     var trIndex = indexOf$2.call(trs, tr);
-                    if (this$1.setSelected(indexOf$2.call(trs, tr))) {
-                        this$1.emit('select', trIndex);
+                    var selectedRow = this$1.curData.rows[trIndex];
+                    if (this$1.setSelected(selectedRow)) {
+                        this$1.emit('select', selectedRow);
                     }
                 });
             }
@@ -792,22 +808,25 @@ var selection = function (Base) {
         anonymous.prototype.constructor = anonymous;
         /**
          * 设置选中行。
-         * @param index 新的选中行的索引
-         * @returns 如果索引号与目前的选中索引号相同，则返回 false，否则返回 true。
+         * @param row 当前被选中的行对象
+         * @returns 如果选中的行没有变化，则返回 false，否则返回 true。
          */
-        anonymous.prototype.setSelected = function setSelected (index) {
-            var oldSelectionIndex = this.selectionIndex;
-            if (oldSelectionIndex === index)
+        anonymous.prototype.setSelected = function setSelected (row) {
+            if ( row === void 0 ) row = null;
+
+            var oldSelectedRow = this.selectedRow;
+            if (oldSelectedRow === row)
                 { return false; }
-            this.selectionIndex = index;
+            this.selectedRow = row;
+            var newRowIndex = row ? this.curData.rows.indexOf(row) : -1;
             var updateSelected = function (grid) {
-                var ref = grid.ui.tbody;
-                var children = ref.children;
-                var lastSelectedRow = children[oldSelectionIndex];
-                if (lastSelectedRow) {
-                    lastSelectedRow.classList.remove('selected-row');
+                var ref = grid.ui;
+                var tbody = ref.tbody;
+                var lastSelectedRow = tbody.getElementsByClassName('selected-row');
+                if (lastSelectedRow.length) {
+                    lastSelectedRow[0].classList.remove('selected-row');
                 }
-                var newSelectedRow = children[index];
+                var newSelectedRow = tbody.children[newRowIndex];
                 if (newSelectedRow) {
                     newSelectedRow.classList.add('selected-row');
                 }
@@ -822,9 +841,9 @@ var selection = function (Base) {
         };
         anonymous.prototype.setData = function setData (data) {
             // 刷新表格前重置选中状态
-            if (this.selectionIndex !== -1) {
-                this.selectionIndex = -1;
-                this.emit('select', -1);
+            if (this.selectedRow) {
+                this.selectedRow = null;
+                this.emit('select', null);
             }
             Base.prototype.setData.call(this, data);
         };
@@ -856,393 +875,40 @@ var selection = function (Base) {
 // 浏览器：`const Grid = DataGrid.default`
 var DataGrid = selection(sort(fixedHeader(fixedTable(BaseGrid))));
 
-var data = {
-    columns: [
-        '一',
-        '二',
-        '三三三',
-        '四四四',
-        '五五五五',
-        '六六六六',
-        '七七七七',
-        '八八八八八八八',
-        '九九九九九九九九九',
-        '十十十十十十十',
-        '十一',
-        '十二',
-        '十三',
-        '十四',
-        '十五',
-        '十六',
-        '十七',
-        '十八',
-        '十九'
-    ],
-    rows: [
-        {
-            一: '二',
-            二: 235,
-            '三三三': 47,
-            '四四四': 112,
-            '五五五五': 444,
-            '六六六六': 16,
-            '七七七七': 51,
-            '八八八八八八八': 'longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong',
-            '九九九九九九九九九': 791,
-            '十十十十十十十': 62,
-            '十一': 338,
-            '十二': 856,
-            '十三': 486,
-            '十四': 521,
-            '十五': 219,
-            '十六': 384,
-            '十七': 876,
-            '十八': 2,
-            '十九': 581
-        },
-        {
-            一: '0.22%',
-            二: '0.10%',
-            '三三三': '0.50%',
-            '四四四': '0.30%',
-            '五五五五': '0.24%',
-            '六六六六': '0.30%',
-            '七七七七': '0.81%',
-            '八八八八八八八': '0.84%',
-            '九九九九九九九九九': '0.23%',
-            '十十十十十十十': '0.44%',
-            '十一': '0.92%',
-            '十二': '0.25%',
-            '十三': '0.97%',
-            '十四': '0.95%',
-            '十五': '0.11%',
-            '十六': '0.21%',
-            '十七': '0.11%',
-            '十八': '0.0%',
-            '十九': '0.23%'
-        },
-        {
-            一: '1-2',
-            二: 927,
-            '三三三': 440,
-            '四四四': 34,
-            '五五五五': 197,
-            '六六六六': 961,
-            '七七七七': 398,
-            '八八八八八八八': 913,
-            '九九九九九九九九九': 418,
-            '十十十十十十十': 459,
-            '十一': 746,
-            '十二': 462,
-            '十三': 87,
-            '十四': 656,
-            '十五': 265,
-            '十六': 98,
-            '十七': 71,
-            '十八': 0,
-            '十九': 732
-        },
-        {
-            一: '1-2',
-            二: 76,
-            '三三三': 542,
-            '四四四': 130,
-            '五五五五': 189,
-            '六六六六': 526,
-            '七七七七': 35,
-            '八八八八八八八': 796,
-            '九九九九九九九九九': 966,
-            '十十十十十十十': 412,
-            '十一': 647,
-            '十二': 958,
-            '十三': 634,
-            '十四': 524,
-            '十五': 193,
-            '十六': 457,
-            '十七': 846,
-            '十八': 0,
-            '十九': 721
-        },
-        {
-            一: '1-2',
-            二: 161,
-            '三三三': 59,
-            '四四四': 734,
-            '五五五五': 182,
-            '六六六六': 849,
-            '七七七七': 289,
-            '八八八八八八八': 137,
-            '九九九九九九九九九': 910,
-            '十十十十十十十': 519,
-            '十一': 883,
-            '十二': 930,
-            '十三': 874,
-            '十四': 615,
-            '十五': 299,
-            '十六': 477,
-            '十七': 995,
-            '十八': 0,
-            '十九': 49
-        },
-        {
-            一: '1-2',
-            二: 13,
-            '三三三': 94,
-            '四四四': 588,
-            '五五五五': 182,
-            '六六六六': 941,
-            '七七七七': 962,
-            '八八八八八八八': 70,
-            '九九九九九九九九九': 734,
-            '十十十十十十十': 470,
-            '十一': 86,
-            '十二': 80,
-            '十三': 886,
-            '十四': 643,
-            '十五': 257,
-            '十六': 514,
-            '十七': 929,
-            '十八': 0,
-            '十九': 417
-        },
-        {
-            一: '1-2',
-            二: 491,
-            '三三三': 451,
-            '四四四': 931,
-            '五五五五': 177,
-            '六六六六': 556,
-            '七七七七': 925,
-            '八八八八八八八': 9,
-            '九九九九九九九九九': 728,
-            '十十十十十十十': 453,
-            '十一': 932,
-            '十二': 796,
-            '十三': 97,
-            '十四': 698,
-            '十五': 227,
-            '十六': 425,
-            '十七': 953,
-            '十八': 0,
-            '十九': 323
-        },
-        {
-            一: '1-2',
-            二: 882,
-            '三三三': 362,
-            '四四四': 37,
-            '五五五五': 176,
-            '六六六六': 741,
-            '七七七七': 647,
-            '八八八八八八八': 238,
-            '九九九九九九九九九': 189,
-            '十十十十十十十': 450,
-            '十一': 920,
-            '十二': 850,
-            '十三': 738,
-            '十四': 727,
-            '十五': 216,
-            '十六': 388,
-            '十七': 794,
-            '十八': 1,
-            '十九': 138
-        },
-        {
-            一: '1-2',
-            二: 677,
-            '三三三': 270,
-            '四四四': 168,
-            '五五五五': 163,
-            '六六六六': 78,
-            '七七七七': 456,
-            '八八八八八八八': 188,
-            '九九九九九九九九九': 292,
-            '十十十十十十十': 330,
-            '十一': 823,
-            '十二': 465,
-            '十三': 610,
-            '十四': 626,
-            '十五': 252,
-            '十六': 430,
-            '十七': 740,
-            '十八': 0,
-            '十九': 156
-        },
-        {
-            一: '1-2',
-            二: 384,
-            '三三三': 524,
-            '四四四': 338,
-            '五五五五': 144,
-            '六六六六': 916,
-            '七七七七': 579,
-            '八八八八八八八': 16,
-            '九九九九九九九九九': 733,
-            '十十十十十十十': 494,
-            '十一': 732,
-            '十二': 718,
-            '十三': 876,
-            '十四': 69,
-            '十五': 280,
-            '十六': 499,
-            '十七': 833,
-            '十八': 0,
-            '十九': 93
-        },
-        {
-            一: '1-2',
-            二: 628,
-            '三三三': 776,
-            '四四四': 451,
-            '五五五五': 191,
-            '六六六六': 29,
-            '七七七七': 826,
-            '八八八八八八八': 99,
-            '九九九九九九九九九': 830,
-            '十十十十十十十': 990,
-            '十一': 769,
-            '十二': 847,
-            '十三': 913,
-            '十四': 566,
-            '十五': 210,
-            '十六': 39,
-            '十七': 918,
-            '十八': 0,
-            '十九': 914
-        },
-        {
-            一: '1-2',
-            二: 350,
-            '三三三': 870,
-            '四四四': 398,
-            '五五五五': 158,
-            '六六六六': 583,
-            '七七七七': 458,
-            '八八八八八八八': 961,
-            '九九九九九九九九九': 851,
-            '十十十十十十十': 559,
-            '十一': 761,
-            '十二': 875,
-            '十三': 987,
-            '十四': 637,
-            '十五': 22,
-            '十六': 360,
-            '十七': 816,
-            '十八': 0,
-            '十九': 874
-        },
-        {
-            一: '1-2',
-            二: 437,
-            '三三三': 721,
-            '四四四': 53,
-            '五五五五': 175,
-            '六六六六': 44,
-            '七七七七': 41,
-            '八八八八八八八': 885,
-            '九九九九九九九九九': 815,
-            '十十十十十十十': 496,
-            '十一': 959,
-            '十二': 886,
-            '十三': 97,
-            '十四': 598,
-            '十五': 196,
-            '十六': 431,
-            '十七': 829,
-            '十八': 0,
-            '十九': 41
-        },
-        {
-            一: '1-2',
-            二: 58,
-            '三三三': 756,
-            '四四四': 346,
-            '五五五五': 175,
-            '六六六六': 577,
-            '七七七七': 132,
-            '八八八八八八八': 867,
-            '九九九九九九九九九': 875,
-            '十十十十十十十': 519,
-            '十一': 788,
-            '十二': 939,
-            '十三': 93,
-            '十四': 556,
-            '十五': 230,
-            '十六': 369,
-            '十七': 829,
-            '十八': 0,
-            '十九': 197
-        },
-        {
-            一: '1-2',
-            二: 138,
-            '三三三': 271,
-            '四四四': 184,
-            '五五五五': 170,
-            '六六六六': 556,
-            '七七七七': 264,
-            '八八八八八八八': 42,
-            '九九九九九九九九九': 930,
-            '十十十十十十十': 53,
-            '十一': 793,
-            '十二': 82,
-            '十三': 752,
-            '十四': 555,
-            '十五': 21,
-            '十六': 345,
-            '十七': 761,
-            '十八': 0,
-            '十九': 9
-        },
-        {
-            一: '1-2',
-            二: 923,
-            '三三三': 11,
-            '四四四': 180,
-            '五五五五': 165,
-            '六六六六': 489,
-            '七七七七': 989,
-            '八八八八八八八': 968,
-            '九九九九九九九九九': 520,
-            '十十十十十十十': 48,
-            '十一': 779,
-            '十二': 528,
-            '十三': 692,
-            '十四': 511,
-            '十五': 191,
-            '十六': 282,
-            '十七': 562,
-            '十八': 1,
-            '十九': 557
-        }
-    ]
-};
-
 __$styleInject(".datagrid{height:400px;border:1px solid #eee;color:#666;font-size:12px;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}.fixed-grid{border:none}.fixed-grid-left{border-right:1px solid #eee}.fixed-grid-right{border-left:1px solid #eee}.datagrid td,.datagrid th{padding-left:15px;padding-right:15px;white-space:nowrap;overflow:hidden;max-width:150px;text-overflow:ellipsis;height:32px}.datagrid th{position:relative;border-right:1px solid #eee;background:#f8f8f8}.datagrid thead tr{border-bottom:1px solid #eee}.datagrid th:last-child{border-right:none}.datagrid td{text-align:center}.datagrid tbody tr:nth-child(2n){background:#f9f9f9}.datagrid tbody tr.hover-row{background:#f3f3f3}.datagrid tbody tr.selected-row{background:#19d4ae;color:#fff}.datagrid .asc,.datagrid .desc{position:absolute;right:0}",undefined);
 
 var grid = new DataGrid();
+grid.on('select', function (row) {
+    console.log('用户选中了一行：', row);
+});
+var orderMap = {
+    0: '无方向',
+    1: '朝上',
+    2: '朝下'
+};
+grid.on('sort', function (column, order) {
+    console.log('当前排序列：', column);
+    console.log('当前排序方向：', orderMap[order]);
+});
 // @ts-ignore
-window._grid = grid;
+window.grid = grid;
 document.body.appendChild(grid.el);
 grid.setData({ rows: [], columns: [] });
 setTimeout(function () {
     grid.setData({
-        columns: [
-            {
-                key: '测试'
-            }
-        ],
+        columns: ['测试', '一下'],
         rows: [
             {
-                测试: '你好'
+                测试: '你好',
+                一下: '世界'
             }
         ]
     });
 }, 500);
-setTimeout(function () {
-    grid.setData(data);
-    grid.setFixed(3);
-    grid.setFixed(1, 'right');
-}, 1000);
+// setTimeout(() => {
+//   grid.setData(data)
+//   grid.setFixed(3)
+//   grid.setFixed(1, 'right')
+// }, 1000)
 
 }());
