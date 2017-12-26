@@ -8,7 +8,7 @@ import * as x from '../fixed-table'
 // tslint:disable-next-line:no-duplicate-imports
 import { DataGridConstructor, TableData } from '../../core'
 import addEvent from '../../utils/add-event'
-// import { raf } from '../../utils/raf-throttle'
+import debounce from '../../utils/debounce'
 import getCSSProperty from '../../utils/get-css-property'
 import './style.css'
 
@@ -45,18 +45,20 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
       el.appendChild(fixedHeaderWrapper)
 
+      this.unbindEvents = [
+        // 窗口大小变化后重新同步表格的宽度
+        addEvent(
+          window,
+          'resize',
+          debounce(() => {
+            this.syncFixedHeader()
+          })
+        )
+      ]
+
       if (!this.parent) {
         const { scrollContainer } = ui
-        this.unbindEvents = [
-          // 窗口大小变化后重新同步表格的宽度
-          // TODO: 窗口大小变化后表格的宽度似乎没有变化？
-          // addEvent(
-          //   window,
-          //   'resize',
-          //   rafThrottle(() => {
-          //     this.syncFixedHeader()
-          //   })
-          // ),
+        this.unbindEvents.push(
           // 表格滚动时，使用 transform 移动固定表头的位置以获得更平滑的效果
           addEvent(scrollContainer, 'scroll', () => {
             // 使用 transform 会比同步 scrollLeft 流畅很多
@@ -65,7 +67,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
               getCSSProperty('transform')
             ] = `translateX(-${scrollContainer.scrollLeft}px)`
           })
-        ]
+        )
       }
     }
 

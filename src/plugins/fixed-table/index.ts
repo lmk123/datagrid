@@ -6,6 +6,7 @@ import * as g from '../../core'
 
 // tslint:disable-next-line:no-duplicate-imports
 import BaseGrid, { DataGridConstructor } from '../../core'
+import debounce from '../../utils/debounce'
 import addEvent from '../../utils/add-event'
 import assign from '../../utils/assign'
 import closest from '../../utils/closest'
@@ -32,6 +33,19 @@ export default function<T extends DataGridConstructor>(Base: T) {
       if (!this.parent) {
         const { el } = this
         this.fixedTableEvents = [
+          // 窗口大小变化后重新同步表格的宽度
+          addEvent(
+            window,
+            'resize',
+            debounce(() => {
+              const { fixedTables } = this
+              if (fixedTables) {
+                for (const place in fixedTables) {
+                  this.syncFixedWidth(place as GridPlace)
+                }
+              }
+            })
+          ),
           // 同步表格的滚动条位置
           addEvent(scrollContainer, 'scroll', () => {
             const { fixedTables } = this
