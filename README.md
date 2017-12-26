@@ -172,11 +172,11 @@ selection 插件没有给 BaseGrid 添加任何设置、属性。
 
 selection 插件给 BaseGrid 添加了一个方法：
 
-#### setSelected(index: number)
+#### setSelected(row?: object)
 
-将指定行设为选中状态。注意：调用这一方法不会触发下面的 `select` 事件。
+将指定行设为选中状态，如果要取消选中状态则不要传参数。注意：调用这一方法不会触发下面的 `select` 事件。
 
-当用户选中了一行数据时，会触发 BaseGrid 的 `select` 事件，参数是选中行的索引号。
+当用户选中了一行数据时，会触发 BaseGrid 的 `select` 事件，参数是选中行的 `Row` 对象。
 
 示例：
 
@@ -185,8 +185,8 @@ import { BaseGrid, selection } from 'datagrid'
 
 const MyGrid = selection(BaseGrid)
 const grid = new MyGrid()
-grid.on('select', index => {
-  console.log(`用户选中了第 ${index + 1} 行数据。`)
+grid.on('select', row => {
+  console.log(`用户选中了这个对象：`, row)
 })
 ```
 

@@ -4,6 +4,19 @@ import '../theme.css'
 
 const grid = new DataGrid()
 
+grid.on('select', (row: any) => {
+  console.log('用户选中了一行：', row)
+})
+const orderMap = {
+  0: '无方向',
+  1: '朝上',
+  2: '朝下'
+}
+grid.on('sort', (column: any, order: 0 | 1 | 2) => {
+  console.log('当前排序列：', column)
+  console.log('当前排序方向：', orderMap[order])
+})
+
 // @ts-ignore
 window._grid = grid
 

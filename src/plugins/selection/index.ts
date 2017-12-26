@@ -13,7 +13,7 @@ const { indexOf } = Array.prototype
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
-    private selectionIndex = -1
+    private selectedRow: object | null
     private ch?: Function
 
     constructor(...args: any[]) {
@@ -31,8 +31,9 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
           const trs = tr.parentElement!.children
           const trIndex = indexOf.call(trs, tr) as number
-          if (this.setSelected(indexOf.call(trs, tr) as number)) {
-            this.emit('select', trIndex)
+          const selectedRow = this.curData.rows[trIndex]
+          if (this.setSelected(selectedRow)) {
+            this.emit('select', selectedRow)
           }
         })
       }
@@ -40,21 +41,22 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
     /**
      * 设置选中行。
-     * @param index 新的选中行的索引
-     * @returns 如果索引号与目前的选中索引号相同，则返回 false，否则返回 true。
+     * @param row 当前被选中的行对象
+     * @returns 如果选中的行没有变化，则返回 false，否则返回 true。
      */
-    setSelected(index: number) {
-      const oldSelectionIndex = this.selectionIndex
-      if (oldSelectionIndex === index) return false
-      this.selectionIndex = index
+    setSelected(row: object | null = null) {
+      const oldSelectedRow = this.selectedRow
+      if (oldSelectedRow === row) return false
+      this.selectedRow = row
+      const newRowIndex = row ? this.curData.rows.indexOf(row) : -1
 
       const updateSelected = function(grid: BaseGrid) {
-        const { children } = grid.ui.tbody
-        const lastSelectedRow = children[oldSelectionIndex]
-        if (lastSelectedRow) {
-          lastSelectedRow.classList.remove('selected-row')
+        const { tbody } = grid.ui
+        const lastSelectedRow = tbody.getElementsByClassName('selected-row')
+        if (lastSelectedRow.length) {
+          lastSelectedRow[0].classList.remove('selected-row')
         }
-        const newSelectedRow = children[index]
+        const newSelectedRow = tbody.children[newRowIndex]
         if (newSelectedRow) {
           newSelectedRow.classList.add('selected-row')
         }
@@ -70,9 +72,9 @@ export default function<T extends DataGridConstructor>(Base: T) {
 
     setData(data: TableData) {
       // 刷新表格前重置选中状态
-      if (this.selectionIndex !== -1) {
-        this.selectionIndex = -1
-        this.emit('select', -1)
+      if (this.selectedRow) {
+        this.selectedRow = null
+        this.emit('select', null)
       }
       super.setData(data)
     }
