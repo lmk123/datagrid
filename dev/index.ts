@@ -18,28 +18,25 @@ grid.on('sort', (column: any, order: 0 | 1 | 2) => {
 })
 
 // @ts-ignore
-window._grid = grid
+window.grid = grid
 
 document.body.appendChild(grid.el)
 grid.setData({ rows: [], columns: [] })
 
 setTimeout(() => {
   grid.setData({
-    columns: [
-      {
-        key: '测试'
-      }
-    ],
+    columns: ['测试', '一下'],
     rows: [
       {
-        测试: '你好'
+        测试: '你好',
+        一下: '世界'
       }
     ]
   })
 }, 500)
 
-setTimeout(() => {
-  grid.setData(data)
-  grid.setFixed(3)
-  grid.setFixed(1, 'right')
-}, 1000)
+// setTimeout(() => {
+//   grid.setData(data)
+//   grid.setFixed(3)
+//   grid.setFixed(1, 'right')
+// }, 1000)

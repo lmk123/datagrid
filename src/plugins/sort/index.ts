@@ -41,7 +41,7 @@ function defaultSortBlock() {
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
-    private sortColumnIndex: number
+    private sortColumn: Column | null
     private sortOrderIndex = 0
     private clickEventHandler?: Function
 
@@ -61,7 +61,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
       this.on(
         'after th render',
         (th: HTMLTableHeaderCellElement, column: Column, index: number) => {
-          if (index === this.sortColumnIndex && this.sortOrderIndex) {
+          if (column === this.sortColumn && this.sortOrderIndex) {
             th.classList.add('sort-by-' + this.sortOrderIndex)
           }
           // TODO: 后期增加只针对某些 column 开启排序的功能
@@ -95,8 +95,9 @@ export default function<T extends DataGridConstructor>(Base: T) {
             newSortColumnIndex = thIndex
           }
 
+          const sortColumn = this.curData.columns[newSortColumnIndex]
           let newOrderIndex: number
-          if (this.sortColumnIndex !== newSortColumnIndex) {
+          if (this.sortColumn !== sortColumn) {
             newOrderIndex = 1
           } else {
             newOrderIndex = this.sortOrderIndex + 1
@@ -105,42 +106,37 @@ export default function<T extends DataGridConstructor>(Base: T) {
             }
           }
 
-          this.setSort(newSortColumnIndex, newOrderIndex)
-          this.emit('sort', newSortColumnIndex, newOrderIndex)
+          this.setSort(sortColumn, newOrderIndex)
+          this.emit('sort', sortColumn, newOrderIndex)
         })
       }
     }
 
-    setSort(newSortColumnIndex = -1, newOrderIndex = 0) {
-      const oldSortColumnIndex = this.sortColumnIndex
+    setSort(sortColumn: Column | null = null, newOrderIndex = 0) {
+      const oldSortColumn = this.sortColumn
       const oldOrderIndex = this.sortOrderIndex
       const setSort = (grid: BaseGrid) => {
-        // 通过索引号计算在表格中 th 元素的索引号，主要是针对右侧固定表格的
-        const columnIndex2trIndex = (columnIndex: number) => {
-          return grid.fixedPlace === 'right'
-            ? grid.fixedColumns! - (this.curData.columns.length - columnIndex)
-            : columnIndex
-        }
-        const ths = (grid.ui.fixedTheadRow || grid.ui.theadRow).children
+        const thRow = grid.ui.fixedTheadRow || grid.ui.theadRow
 
         // 清除上一个排序指示箭头
-        if (oldOrderIndex) {
-          const oldTh = ths[columnIndex2trIndex(oldSortColumnIndex)]
-          if (oldTh) {
-            oldTh.classList.remove('sort-by-' + oldOrderIndex)
-          }
+        const oldSortClass = 'sort-by-' + oldOrderIndex
+        const lastSortTh = thRow.getElementsByClassName(oldSortClass)
+        if (lastSortTh.length) {
+          lastSortTh[0].classList.remove('sort-by-' + oldOrderIndex)
         }
 
         // 给表格设置正确的排序状态以在重新调用 setData() 时保留排序指示箭头
         // @ts-ignore
         grid.sortOrderIndex = newOrderIndex
-        const gridThIndex = columnIndex2trIndex(newSortColumnIndex)
         // @ts-ignore
-        grid.sortColumnIndex = gridThIndex
+        grid.sortColumn = sortColumn
 
         // 有排序方向时才给表格设置新的指示箭头
         if (newOrderIndex) {
-          const newTh = ths[gridThIndex]
+          const gridThIndex = sortColumn
+            ? grid.curData.columns.indexOf(sortColumn)
+            : -1
+          const newTh = thRow.children[gridThIndex]
           if (newTh) {
             newTh.classList.add('sort-by-' + newOrderIndex)
           }

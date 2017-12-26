@@ -22,7 +22,11 @@ export interface Row {
 }
 
 export interface DataGridOptions {
-  th?: (column: ColumnObj, index: number, th: HTMLTableHeaderCellElement) => string | Node | undefined
+  th?: (
+    column: ColumnObj,
+    index: number,
+    th: HTMLTableHeaderCellElement
+  ) => string | Node | undefined
   td?: (
     column: ColumnObj,
     row: Row,
@@ -119,8 +123,8 @@ export default class BaseGrid extends TinyEmitter {
   setData(data: TableData) {
     const { columns = [], rows = [] } = data
     this.curData = {
-      columns,
-      rows
+      columns: columns.slice(),
+      rows: rows.slice()
     }
     const { theadRow, tbody } = this.ui
 
@@ -128,7 +132,7 @@ export default class BaseGrid extends TinyEmitter {
     if (columns.length) {
       columns.forEach((column, index) => {
         if (typeof column === 'string') {
-          column = {
+          this.curData.columns[index] = column = {
             key: column
           }
         }
@@ -155,7 +159,15 @@ export default class BaseGrid extends TinyEmitter {
           }
           const td = document.createElement('td')
           fillNode(td, this.options.td!(column, row, td, columnIndex, rowIndex))
-          this.emit('after td render', td, column, row, td, rowIndex, columnIndex)
+          this.emit(
+            'after td render',
+            td,
+            column,
+            row,
+            td,
+            rowIndex,
+            columnIndex
+          )
           tr.appendChild(td)
         })
         fragment.appendChild(tr)
