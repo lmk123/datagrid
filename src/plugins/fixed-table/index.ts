@@ -104,6 +104,8 @@ export default function<T extends DataGridConstructor>(Base: T) {
       }
       if (!fixedTable) {
         fixedTable = this.createFixedGrid(place)
+      } else {
+        fixedTable.el.style.display = ''
       }
       const { curData } = this
       fixedTable.fixedColumns = count
@@ -115,7 +117,6 @@ export default function<T extends DataGridConstructor>(Base: T) {
             : curData.columns.slice(-count),
         rows: curData.rows
       })
-      fixedTable.el.style.display = ''
     }
 
     /**

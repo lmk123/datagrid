@@ -21,7 +21,7 @@
 
 .datagrid .scroll-container {
   height: 100%;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .datagrid table {
