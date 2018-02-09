@@ -80,7 +80,7 @@ export default class BaseGrid extends TinyEmitter {
   readonly el = document.createElement('div')
   /* protected */ readonly ui: { [prop: string]: HTMLElement }
   protected options: InnerDataGridOptions
-  curData: TableData
+  curData!: TableData
   /** 如果当前实例用了 fixedTable 插件，则会有这个属性 */
   protected children?: BaseGrid[]
   protected fixedTables?: FixedGrids
