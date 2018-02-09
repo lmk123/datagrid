@@ -76,7 +76,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
               if (lastHoverTr) {
                 lastHoverTr.classList.remove('hover-row')
               }
-              trs[index].classList.add('hover-row')
+              trs[index] && trs[index].classList.add('hover-row')
             }
             setHover(this)
             const { children } = this
