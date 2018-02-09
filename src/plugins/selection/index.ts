@@ -13,7 +13,7 @@ const { indexOf } = Array.prototype
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
-    private selectedRow: object | null
+    private selectedRow: object | null = null
     private ch?: Function
 
     constructor(...args: any[]) {

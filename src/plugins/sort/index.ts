@@ -41,7 +41,7 @@ function defaultSortBlock() {
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
-    private sortColumn: Column | null
+    private sortColumn: Column | null = null
     private sortOrderIndex = 0
     private clickEventHandler?: Function
 

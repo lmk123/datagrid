@@ -24,7 +24,7 @@ const { some, /* forEach, */ indexOf } = Array.prototype
 
 export default function<T extends DataGridConstructor>(Base: T) {
   return class extends Base {
-    private lastHoverIndex: number
+    private lastHoverIndex: number | undefined
     private readonly fixedTableEvents?: Function[]
 
     constructor(...args: any[]) {
@@ -72,7 +72,7 @@ export default function<T extends DataGridConstructor>(Base: T) {
             this.lastHoverIndex = index
             const setHover = (grid: BaseGrid) => {
               const trs = grid.ui.tbody.children
-              const lastHoverTr = trs[lastHoverIndex] as HTMLTableRowElement
+              const lastHoverTr = trs[lastHoverIndex!] as HTMLTableRowElement
               if (lastHoverTr) {
                 lastHoverTr.classList.remove('hover-row')
               }
